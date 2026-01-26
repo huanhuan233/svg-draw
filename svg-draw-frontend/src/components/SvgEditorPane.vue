@@ -24,7 +24,7 @@
     </div>
 
     <div class="editor-area">
-      <div class="editor-main">
+      <div class="editor-main" :class="{ 'svgedit-active': activeTab === 'svgedit' }">
         <!-- SVG -->
         <template v-if="activeTab === 'svg'">
           <el-card shadow="never">
@@ -270,6 +270,14 @@ const handlePush = () => {
   padding: 12px;
   overflow: auto;
   background: var(--el-bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* SVG-Edit 面板时，editor-main 不滚动，让 iframe 占据空间 */
+.editor-main.svgedit-active {
+  overflow: hidden;
+  padding: 0;
 }
 
 .code-mono {

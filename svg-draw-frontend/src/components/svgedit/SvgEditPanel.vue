@@ -6,11 +6,11 @@
         <el-tag type="info" effect="light">后续替换真实 SVG-Edit</el-tag>
       </div>
     </template>
-    <div class="preview-box" style="padding: 0; overflow: hidden;">
+    <div class="svgedit-container">
       <iframe
         id="svgeditFrame"
         title="SVG-Edit"
-        style="width: 100%; height: 420px; border: 0; background: #fff"
+        class="svgedit-iframe"
         :src="iframeSrc"
         @load="handleIframeLoad"
       />
@@ -51,11 +51,40 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.preview-box {
+.svgedit-container {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
   border: 1px dashed var(--el-border-color);
   border-radius: 10px;
-  padding: 12px;
-  min-height: 360px;
+  overflow: hidden;
   background: var(--el-fill-color-light);
+  display: flex;
+  flex-direction: column;
+  /* 确保容器占据父容器的全部可用空间 */
+  flex: 1;
+}
+
+.svgedit-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+  flex: 1;
+  min-height: 0;
+  /* 确保 iframe 内容不被压缩，保持原始比例 */
+  display: block;
+}
+
+/* 暗色主题适配 */
+html.dark .svgedit-iframe {
+  background: var(--el-bg-color);
+}
+
+/* 确保 SVG-Edit 内部的布局不会被压缩 */
+.svgedit-iframe {
+  /* 防止内容缩放 */
+  transform: scale(1);
+  transform-origin: top left;
 }
 </style>
