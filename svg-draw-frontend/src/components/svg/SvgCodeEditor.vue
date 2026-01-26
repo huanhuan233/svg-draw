@@ -55,7 +55,7 @@ const handleInput = (e: Event) => {
 }
 
 .code-textarea {
-  font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -63,9 +63,9 @@ const handleInput = (e: Event) => {
   overflow-wrap: break-word;
   overflow-x: hidden;
   overflow-y: auto;
-  color: #1d121b;
-  background-color: #ffffff;
-  border: 1px solid #e4e7ed;
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
   resize: none;
   width: 100% !important;
   height: 100% !important;
@@ -78,12 +78,12 @@ const handleInput = (e: Event) => {
 }
 
 .code-textarea:focus {
-  border-color: #548df8;
+  border-color: var(--el-color-primary);
 }
 
 .code-textarea:disabled {
-  background-color: #f5f7fa;
-  color: #c0c4cc;
+  background-color: var(--el-fill-color-light);
+  color: var(--el-text-color-placeholder);
   cursor: not-allowed;
 }
 </style>

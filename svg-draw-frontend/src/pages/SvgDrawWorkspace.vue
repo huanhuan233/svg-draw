@@ -1,52 +1,301 @@
 <template>
-  <div class="svg-draw-workspace">
-    <el-container class="workspace-container">
-      <!-- 左侧对话面板 -->
-      <el-aside class="chat-aside" width="400px">
-        <SvgChatPanel @apply-svg="handleApplySvg" />
-      </el-aside>
+  <div class="shell">
+    <div class="workspace">
+      <!-- 右侧抽屉把手 -->
+      <div
+        class="drawer-handle"
+        @click="handleToggleDrawer"
+        :title="drawerOpen ? '关闭侧栏' : '打开侧栏'"
+      >
+        <span class="v">{{ drawerOpen ? '关闭' : '运行' }}</span>
+      </div>
 
-      <!-- 右侧编辑器 -->
-      <el-main class="editor-main">
-        <SvgEditorPane ref="editorRef" />
-      </el-main>
-    </el-container>
+      <div class="header">
+        <div class="brand">
+          <el-tag type="success" effect="light">就绪</el-tag>
+          <span>SVG Draw</span>
+        </div>
+
+        <div class="header-actions">
+          <el-button @click="handleToggleTheme">主题（白/黑）</el-button>
+          <el-button type="primary">新建</el-button>
+          <el-button>Runs</el-button>
+        </div>
+      </div>
+
+      <div class="main">
+        <!-- 左侧：对话 -->
+        <aside class="left" :style="{ width: leftWidth + 'px' }">
+          <SvgChatPanel
+            :messages="messages"
+            :prompt="prompt"
+            :run="run"
+            :draft="draft"
+            :left-mode="leftMode"
+            @update:prompt="handleUpdatePrompt"
+            @update:left-mode="handleUpdateLeftMode"
+            @send="handleSend"
+            @example="handleExample"
+          />
+        </aside>
+
+        <!-- Resizer for left panel -->
+        <div class="resizer" @mousedown="handleStartResize"></div>
+
+        <!-- 右侧：编辑器 -->
+        <section class="right">
+          <SvgEditorPane
+            :active-tab="activeTab"
+            :svg-mode="svgMode"
+            :auto-switch="autoSwitch"
+            :svg-code="svgCode"
+            :mermaid-code="mermaidCode"
+            :final-spec-json="finalSpecJson"
+            :rag-json="ragJson"
+            :logs-text="logsText"
+            :draft="draft"
+            @update:active-tab="handleUpdateActiveTab"
+            @update:svg-mode="handleUpdateSvgMode"
+            @update:auto-switch="handleUpdateAutoSwitch"
+            @copy="handleCopyCode"
+            @push="handlePushToSvgEdit"
+          />
+        </section>
+      </div>
+
+      <!-- 抽屉：运行与草稿 -->
+      <RunDraftDrawer
+        :drawer-open="drawerOpen"
+        :run="run"
+        :draft="draft"
+        @update:drawer-open="handleUpdateDrawerOpen"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useSvgDraw } from '../composables/useSvgDraw'
 import SvgChatPanel from '../components/SvgChatPanel.vue'
 import SvgEditorPane from '../components/SvgEditorPane.vue'
+import RunDraftDrawer from '../components/RunDraftDrawer.vue'
+import type { ActiveTab, SvgMode } from '../composables/useSvgDraw'
 
-const editorRef = ref<InstanceType<typeof SvgEditorPane> | null>(null)
+const {
+  // UI 状态
+  isDark,
+  leftMode,
+  activeTab,
+  svgMode,
+  autoSwitch,
+  drawerOpen,
+  leftWidth,
+  
+  // 数据状态
+  messages,
+  prompt,
+  run,
+  draft,
+  svgCode,
+  mermaidCode,
+  finalSpecJson,
+  ragJson,
+  logsText,
+  
+  // 方法
+  toggleTheme,
+  toggleDrawer,
+  startResize,
+  sendPrompt,
+  copyCurrentCode,
+  pushToSvgEdit,
+  loadExample,
+} = useSvgDraw()
 
-const handleApplySvg = (svgText: string) => {
-  if (editorRef.value) {
-    editorRef.value.importSvg(svgText)
-  }
+const handleToggleTheme = () => {
+  toggleTheme()
+}
+
+const handleToggleDrawer = () => {
+  toggleDrawer()
+}
+
+const handleUpdateDrawerOpen = (value: boolean) => {
+  drawerOpen.value = value
+}
+
+const handleStartResize = (e: MouseEvent) => {
+  startResize(e)
+}
+
+const handleUpdatePrompt = (value: string) => {
+  prompt.value = value
+}
+
+const handleUpdateLeftMode = (value: 'chat' | 'history') => {
+  leftMode.value = value
+}
+
+const handleSend = (text: string) => {
+  sendPrompt(text)
+}
+
+const handleExample = () => {
+  loadExample()
+}
+
+const handleUpdateActiveTab = (value: ActiveTab) => {
+  activeTab.value = value
+}
+
+const handleUpdateSvgMode = (value: SvgMode) => {
+  svgMode.value = value
+}
+
+const handleUpdateAutoSwitch = (value: boolean) => {
+  autoSwitch.value = value
+}
+
+const handleCopyCode = () => {
+  copyCurrentCode()
+}
+
+const handlePushToSvgEdit = () => {
+  pushToSvgEdit()
 }
 </script>
 
 <style scoped>
-.svg-draw-workspace {
-  height: calc(100vh - 64px);
-  overflow: hidden;
-}
-
-.workspace-container {
+.shell {
   height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
-.chat-aside {
-  background-color: #ffffff;
-  border-right: 1px solid #e4e7ed;
+.workspace {
+  height: calc(100vh - 24px);
+  border: 1px solid var(--el-border-color);
+  border-radius: 12px;
   overflow: hidden;
+  background: var(--el-bg-color);
+  box-shadow: var(--el-box-shadow-light);
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-.editor-main {
-  padding: 0;
-  background-color: #f7f8fa;
-  overflow: hidden;
+.header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--el-text-color-primary);
+  font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.left {
+  border-right: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.resizer {
+  width: 4px;
+  background: var(--el-border-color);
+  cursor: col-resize;
+  user-select: none;
+}
+
+.resizer:hover {
+  background: var(--el-color-primary);
+}
+
+.right {
+  flex: 1;
+  min-width: 520px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--el-bg-color);
+}
+
+/* 右侧抽屉把手：始终贴右边缘，中间位置 */
+.drawer-handle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 34px;
+  height: 64px;
+  border-radius: 10px;
+  border: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+  box-shadow: var(--el-box-shadow-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  color: var(--el-text-color-regular);
+}
+
+.drawer-handle:hover {
+  border-color: var(--el-color-primary-light-5);
+}
+
+.drawer-handle .v {
+  writing-mode: vertical-rl;
+  letter-spacing: 1px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .main {
+    flex-direction: column;
+  }
+  
+  .left {
+    width: 100%;
+    max-width: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+  
+  .right {
+    min-width: 0;
+  }
+  
+  .resizer {
+    display: none;
+  }
+  
+  .drawer-handle {
+    display: none;
+  }
 }
 </style>

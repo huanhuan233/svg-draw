@@ -1,134 +1,120 @@
 <template>
   <div class="svg-chat-panel">
-    <div class="chat-header">
-      <span class="chat-title">对话生成 SVG</span>
+    <div class="left-head">
+      <div>
+        <div class="left-title">对话生成绘图</div>
+        <div class="left-sub">链路：M2 输入 → M6 编排 → M7 草稿（M3/M4/M5 先 Stub）</div>
+      </div>
+      <el-segmented
+        v-model="leftMode"
+        :options="[
+          { label: '对话', value: 'chat' },
+          { label: '记录', value: 'history' },
+        ]"
+      />
     </div>
 
-    <!-- 消息列表 -->
-    <div class="chat-messages" ref="messagesRef">
+    <div class="chat-body" id="chatBody">
       <div
-        v-for="(msg, index) in messages"
-        :key="index"
-        :class="['message-item', msg.role]"
+        v-for="(msg, idx) in messages"
+        :key="idx"
+        class="msg-row"
+        :class="{ user: msg.role === 'user' }"
       >
-        <div class="message-content">
-          <div class="message-text">{{ msg.content }}</div>
-          <div v-if="msg.svg" class="message-svg-panel">
-            <SvgGenPanel
-              v-model="msg.svg"
-              :loading="false"
-              @push="handleApplySvg"
-            />
-          </div>
-        </div>
+        <div class="bubble">{{ msg.text }}</div>
       </div>
     </div>
 
-    <!-- 输入区 -->
-    <div class="chat-input-area">
+    <div class="chat-foot">
       <el-input
-        v-model="inputText"
+        v-model="prompt"
         type="textarea"
-        :rows="3"
-        placeholder="输入提示词，生成 SVG..."
+        :rows="4"
+        placeholder="例如：创建一个流程图 / 画一个系统架构图 / 生成泳道图…"
         @keydown.ctrl.enter="handleSend"
       />
-      <div class="input-actions">
-        <el-button type="primary" @click="handleSend" :loading="sending">
-          发送
-        </el-button>
-        <el-button @click="handleMockSvg">使用示例 SVG</el-button>
+
+      <div class="foot-actions">
+        <div class="tags">
+          <el-tag effect="plain">run: {{ run.run_id }}</el-tag>
+          <el-tag effect="plain">draft: {{ draft.draft_id }}</el-tag>
+          <el-tag effect="plain">dsl: {{ draft.dsl_type }}</el-tag>
+        </div>
+
+        <div class="buttons">
+          <el-button @click="handleExample">示例</el-button>
+          <el-button type="primary" @click="handleSend" :loading="sending">
+            发送
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
-import SvgGenPanel from './svg/SvgGenPanel.vue'
+import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
 
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  svg?: string
+interface Props {
+  messages: Array<{ role: 'user' | 'ai' | 'system'; text: string }>
+  prompt: string
+  run: { run_id: string; status: string }
+  draft: {
+    draft_id: string
+    dsl_type: string
+    title: string
+    router_reason: string
+    code: string
+  }
+  leftMode: 'chat' | 'history'
 }
 
-const messages = ref<Message[]>([])
-const inputText = ref('')
-const sending = ref(false)
-const messagesRef = ref<HTMLElement | null>(null)
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  (e: 'apply-svg', svg: string): void
+  (e: 'update:prompt', value: string): void
+  (e: 'update:leftMode', value: 'chat' | 'history'): void
+  (e: 'send', text: string): void
+  (e: 'example'): void
 }>()
 
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (messagesRef.value) {
-      messagesRef.value.scrollTop = messagesRef.value.scrollHeight
-    }
-  })
-}
+const sending = ref(false)
 
-const handleSend = async () => {
-  if (!inputText.value.trim()) {
-    return
-  }
+const prompt = ref(props.prompt)
+const leftMode = ref(props.leftMode)
 
-  const userMessage: Message = {
-    role: 'user',
-    content: inputText.value,
-  }
-  messages.value.push(userMessage)
-  const currentInput = inputText.value
-  inputText.value = ''
+watch(() => props.prompt, (val) => {
+  prompt.value = val
+})
+
+watch(() => props.leftMode, (val) => {
+  leftMode.value = val
+})
+
+watch(prompt, (val) => {
+  emit('update:prompt', val)
+})
+
+watch(leftMode, (val) => {
+  emit('update:leftMode', val)
+})
+
+const handleSend = () => {
+  const text = prompt.value.trim()
+  if (!text || sending.value) return
+  
   sending.value = true
-
-  scrollToBottom()
-
-  // TODO: 后续对接后端 API
-  // 当前使用 mock 响应
+  emit('send', text)
+  
+  // 重置发送状态（由父组件控制实际发送流程）
   setTimeout(() => {
-    const mockSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
-  <circle cx="100" cy="100" r="50" fill="#548DF8" />
-  <text x="100" y="110" text-anchor="middle" fill="white" font-size="16">${currentInput}</text>
-</svg>`
-
-    const assistantMessage: Message = {
-      role: 'assistant',
-      content: `已根据"${currentInput}"生成 SVG`,
-      svg: mockSvg,
-    }
-    messages.value.push(assistantMessage)
     sending.value = false
-    scrollToBottom()
-  }, 500)
+  }, 100)
 }
 
-const handleMockSvg = () => {
-  const mockSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
-  <rect width="400" height="300" fill="#f7f8fa" />
-  <rect x="50" y="50" width="300" height="200" fill="#548DF8" rx="8" />
-  <text x="200" y="160" text-anchor="middle" fill="white" font-size="24" font-family="Microsoft YaHei">示例 SVG</text>
-</svg>`
-
-  const assistantMessage: Message = {
-    role: 'assistant',
-    content: '这是一个示例 SVG',
-    svg: mockSvg,
-  }
-  messages.value.push(assistantMessage)
-  scrollToBottom()
-}
-
-const handleApplySvg = (svg: string) => {
-  if (!svg) {
-    ElMessage.warning('SVG 内容为空')
-    return
-  }
-  emit('apply-svg', svg)
-  ElMessage.success('已推送到画布')
+const handleExample = () => {
+  emit('example')
 }
 </script>
 
@@ -137,90 +123,94 @@ const handleApplySvg = (svg: string) => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background: var(--el-bg-color);
+  min-height: 0;
 }
 
-.chat-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #e4e7ed;
+.left-head {
+  padding: 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--el-bg-color);
 }
 
-.chat-title {
-  font-size: 16px;
-  font-weight: 400;
-  color: #1d121b;
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  background-color: #f7f8fa;
-}
-
-.message-item {
-  margin-bottom: 16px;
-}
-
-.message-item.user {
-  text-align: right;
-}
-
-.message-item.assistant {
-  text-align: left;
-}
-
-.message-content {
-  display: inline-block;
-  max-width: 100%;
-  width: 100%;
-  text-align: left;
-  box-sizing: border-box;
-}
-
-.message-text {
-  padding: 8px 12px;
-  border-radius: 4px;
+.left-title {
   font-size: 14px;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  line-height: 1.2;
+}
+
+.left-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.35;
+}
+
+.chat-body {
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  overflow: auto;
+  background: var(--el-bg-color);
+}
+
+.msg-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.msg-row.user {
+  flex-direction: row-reverse;
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+  font-size: 13px;
   line-height: 1.5;
-  word-wrap: break-word;
-  margin-bottom: 8px;
+  white-space: pre-wrap;
 }
 
-.message-item.user .message-text {
-  background-color: #548df8;
-  color: #ffffff;
+.msg-row.user .bubble {
+  background: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary-light-7);
 }
 
-.message-item.assistant .message-text {
-  background-color: #ffffff;
-  color: #1d121b;
-  border: 1px solid #e4e7ed;
-}
-
-.message-svg-panel {
-  margin-top: 8px;
-  border: 1px solid #e4e7ed;
-  border-radius: 4px;
-  overflow: hidden;
-  background-color: #ffffff;
-  height: 400px;
+.chat-foot {
+  padding: 12px;
+  border-top: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
   display: flex;
   flex-direction: column;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 10px;
 }
 
-.chat-input-area {
-  padding: 16px;
-  border-top: 1px solid #e4e7ed;
-  background-color: #ffffff;
-}
-
-.input-actions {
+.foot-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tags {
+  display: flex;
   gap: 8px;
-  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
 }
 </style>

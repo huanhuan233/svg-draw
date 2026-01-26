@@ -13,13 +13,23 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #f7f8fa;
+  background-color: var(--el-bg-color-page, #f7f8fa);
+}
+
+html.dark body {
+  background-color: var(--el-bg-color-page);
 }
 
 #app {
   min-height: 100vh;
+  height: 100%;
 }
 
