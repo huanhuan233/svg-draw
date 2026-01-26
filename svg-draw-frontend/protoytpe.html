@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SVG Draw | Workspace Prototype</title>
+
+  <style>
+    :root{
+      /* 暗色工作区：语义变量（后面可对齐你的 UI 规范） */
+      --bg:#0b1220;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.03);
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --text2:rgba(255,255,255,.72);
+      --text3:rgba(255,255,255,.55);
+      --primary:#3b82f6;
+      --primary2:#2563eb;
+      --success:#22c55e;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+
+      --r12:12px;
+      --r10:10px;
+      --gap:12px;
+
+      --headerH:56px;
+      --leftW:360px;
+      --sideW:360px;
+    }
+
+    /* 预留浅色主题 */
+    [data-theme="light"]{
+      --bg:#f6f8fc;
+      --panel:#ffffff;
+      --panel2:#ffffff;
+      --card:rgba(15,23,42,.04);
+      --border:rgba(15,23,42,.10);
+      --text:rgba(15,23,42,.92);
+      --text2:rgba(15,23,42,.72);
+      --text3:rgba(15,23,42,.55);
+      --shadow:0 10px 30px rgba(15,23,42,.10);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 700px at 15% 20%, rgba(59,130,246,.18), transparent 65%),
+        radial-gradient(900px 600px at 80% 30%, rgba(34,197,94,.12), transparent 65%),
+        var(--bg);
+      color:var(--text);
+      overflow:hidden;
+    }
+
+    .app{ height:100%; display:flex; flex-direction:column; }
+
+    /* 顶部栏 */
+    .header{
+      height:var(--headerH);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 16px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      backdrop-filter: blur(10px);
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:700; }
+    .logo{
+      width:28px; height:28px; border-radius:8px;
+      background:linear-gradient(135deg, rgba(59,130,246,.9), rgba(34,197,94,.7));
+      box-shadow:var(--shadow);
+    }
+    .header-right{ display:flex; align-items:center; gap:10px; }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      background:var(--card); border:1px solid var(--border);
+      color:var(--text2); font-size:12px;
+    }
+    .dot{ width:8px; height:8px; border-radius:999px; background:var(--success); box-shadow:0 0 0 3px rgba(34,197,94,.15); }
+
+    .btn{
+      height:34px; padding:0 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:var(--card);
+      color:var(--text);
+      cursor:pointer;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .btn:hover{ border-color: rgba(59,130,246,.55); }
+    .btn.primary{
+      border-color: rgba(59,130,246,.55);
+      background: linear-gradient(180deg, rgba(59,130,246,.92), rgba(37,99,235,.92));
+    }
+    .btn.primary:hover{ filter:brightness(1.05); }
+    .btn.ghost{ background:transparent; }
+
+    .icon{ width:16px; height:16px; display:inline-block; }
+
+    /* 主体布局：左聊天 + 右工作区 */
+    .main{
+      height: calc(100% - var(--headerH));
+      display:flex;
+      gap: var(--gap);
+      padding: var(--gap);
+    }
+    .left, .right{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius:var(--r12);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .left{ width: var(--leftW); min-width:320px; max-width:520px; }
+    .right{ flex:1; min-width:520px; }
+
+    /* 左侧：对话 */
+    .left-head{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .left-title{ font-size:14px; font-weight:700; }
+    .hint{ font-size:12px; color:var(--text3); }
+
+    .seg{
+      display:inline-flex;
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--border);
+      border-radius:10px;
+      overflow:hidden;
+    }
+    .seg button{
+      height:30px; padding:0 10px;
+      border:0; background:transparent;
+      color:var(--text2);
+      cursor:pointer; font-size:12px;
+    }
+    .seg button.active{
+      background: rgba(59,130,246,.18);
+      color: var(--text);
+    }
+
+    .chat-body{ flex:1; padding:12px; overflow:auto; }
+
+    .msg{ display:flex; gap:10px; margin-bottom:12px; }
+    .msg.user{ flex-direction: row-reverse; }
+    .avatar{
+      width:28px; height:28px; border-radius:10px;
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; color:var(--text2);
+      flex:0 0 auto;
+    }
+    .bubble{
+      max-width: 260px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      line-height:1.45;
+      font-size:13px;
+      white-space:pre-wrap;
+    }
+    .msg.user .bubble{
+      background: rgba(59,130,246,.15);
+      border-color: rgba(59,130,246,.35);
+    }
+
+    .chat-foot{
+      padding:12px;
+      border-top:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      background: rgba(0,0,0,.04);
+    }
+    .input{
+      width:100%;
+      min-height:90px;
+      resize:none;
+      outline:none;
+      color:var(--text);
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      font-size:13px;
+      line-height:1.5;
+    }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .split{ display:flex; align-items:center; gap:8px; }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:2px 8px; border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      font-size:12px; color:var(--text2);
+    }
+    .badge b{ color:var(--text); font-weight:700; }
+
+    /* 右侧：顶部 tabs + actions */
+    .right-head{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .tabs{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .tab{
+      height:34px; padding:0 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text2);
+      cursor:pointer;
+      font-size:12px;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .tab.active{
+      background: rgba(59,130,246,.18);
+      border-color: rgba(59,130,246,.45);
+      color: var(--text);
+    }
+    .right-actions{ display:flex; align-items:center; gap:8px; }
+
+    /* 右侧：主编辑区 + 侧栏（为 SmartMermaid / KG / RAG / Logs / Artifacts 预留） */
+    .content{ flex:1; display:flex; overflow:hidden; }
+    .editor{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .side{
+      width: var(--sideW);
+      border-left:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .side-head{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .side-title{ font-size:13px; font-weight:700; }
+    .side-body{ flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:12px; }
+
+    .panelWrap{ flex:1; overflow:auto; padding:12px; }
+    .panelWrap.noPadding{ padding:0; }
+
+    .card{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      border-radius:12px;
+      padding:10px;
+    }
+    .card h4{ margin:0 0 8px; font-size:12px; color:var(--text2); font-weight:700; }
+    .kv{ display:flex; justify-content:space-between; gap:10px; font-size:12px; color:var(--text2); }
+    .kv b{ color:var(--text); font-weight:700; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace; }
+
+    .hr{ height:1px; background: var(--border); margin:10px 0; }
+
+    .codebox{
+      width:100%;
+      min-height: 380px;
+      resize: vertical;
+      outline:none;
+      color:var(--text);
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .preview{
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:12px;
+      padding:14px;
+      background: rgba(0,0,0,.06);
+      min-height: 420px;
+    }
+    .empty{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--text3);
+      font-size:13px;
+      text-align:center;
+      padding:18px;
+      min-height: 220px;
+    }
+
+    /* 响应式 */
+    @media (max-width:1100px){
+      .side{ display:none; }
+      :root{ --leftW:320px; }
+    }
+    @media (max-width:900px){
+      .main{ flex-direction:column; }
+      .left{ width:100%; max-width:none; }
+      .right{ min-width:0; }
+    }
+  </style>
+</head>
+
+<body data-theme="dark">
+  <div class="app">
+
+    <!-- 顶部栏 -->
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>SVG Draw</div>
+        <div class="pill" title="当前工作区状态"><span class="dot"></span> 已就绪</div>
+      </div>
+
+      <div class="header-right">
+        <button class="btn ghost" id="btnTheme" title="切换主题（预留）">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          主题
+        </button>
+
+        <button class="btn" id="btnNewRun" title="新建 Run（M1 预留）">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          新建
+        </button>
+
+        <button class="btn" id="btnOpenRuns" title="查看运行记录（M1 预留）">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Runs
+        </button>
+      </div>
+    </div>
+
+    <!-- 主体 -->
+    <div class="main">
+
+      <!-- 左：对话/生成 -->
+      <aside class="left">
+        <div class="left-head">
+          <div>
+            <div class="left-title">对话生成绘图</div>
+            <div class="hint">链路：M2 输入 → M6 编排 → M7 草稿（M3/M4/M5 先 Stub 占位）</div>
+          </div>
+          <div class="seg" aria-label="左侧切换（预留）">
+            <button class="active" id="segChat">对话</button>
+            <button id="segHistory">记录</button>
+          </div>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+          <div class="msg">
+            <div class="avatar">AI</div>
+            <div class="bubble">输入一句话后，右侧会根据 dsl_type 自动切换面板：
+- svg → SVG 面板 / 可推送 SVG-Edit
+- mermaid → Mermaid / SmartMermaid
+- 其它 → 预留 Tab</div>
+          </div>
+        </div>
+
+        <div class="chat-foot">
+          <textarea class="input" id="prompt" placeholder="例如：创建一个流程图 / 画一个系统架构图 / 生成泳道图…"></textarea>
+          <div class="row">
+            <div class="split">
+              <span class="badge" id="runBadge">run: -</span>
+              <span class="badge" id="modeBadge">output_mode: auto</span>
+            </div>
+            <div class="split">
+              <button class="btn" id="btnExample">示例</button>
+              <button class="btn primary" id="btnSend">
+                <svg class="icon" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 12l16-8-6 16-2-7-8-1Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+                发送
+              </button>
+            </div>
+          </div>
+          <div class="hint">Prototype：后端默认为 <span class="mono">http://127.0.0.1:8626</span>（JS 里配置）</div>
+        </div>
+      </aside>
+
+      <!-- 右：编辑器/预览/智能模块占位 -->
+      <section class="right">
+        <div class="right-head">
+          <div class="tabs" role="tablist" aria-label="右侧面板 Tab（含 SmartMermaid 等预留）">
+            <button class="tab active" data-tab="tab-svg">SVG</button>
+            <button class="tab" data-tab="tab-mermaid">Mermaid</button>
+            <button class="tab" data-tab="tab-smart">SmartMermaid</button>
+            <button class="tab" data-tab="tab-svgedit">SVG-Edit</button>
+            <button class="tab" data-tab="tab-kg">KG</button>
+            <button class="tab" data-tab="tab-rag">RAG</button>
+            <button class="tab" data-tab="tab-logs">Logs</button>
+          </div>
+
+          <div class="right-actions">
+            <button class="btn" id="btnAuto">自动切换</button>
+            <button class="btn" id="btnCopy">复制代码</button>
+            <button class="btn" id="btnPush">推送</button>
+          </div>
+        </div>
+
+        <div class="content">
+
+          <!-- 主编辑区 -->
+          <div class="editor">
+
+            <!-- SVG 面板 -->
+            <div class="panelWrap" id="tab-svg">
+              <div class="row" style="margin-bottom:10px;">
+                <div class="split">
+                  <span class="badge">dsl_type: <b id="dslType">svg</b></span>
+                  <span class="badge">draft_id: <b id="draftId">-</b></span>
+                </div>
+                <div class="seg" aria-label="SVG 面板切换（预留 JS 控制）">
+                  <button class="active" id="segSvgCode">代码</button>
+                  <button id="segSvgPreview">预览</button>
+                </div>
+              </div>
+
+              <div id="svgCodeWrap">
+                <textarea class="codebox mono" id="svgCode" placeholder="这里是 SVG 代码（M7 Draft.code）"></textarea>
+              </div>
+
+              <div id="svgPreviewWrap" style="display:none;">
+                <div class="preview" id="svgPreview">
+                  <div class="empty">暂无 SVG 预览（生成后渲染）</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mermaid 面板 -->
+            <div class="panelWrap" id="tab-mermaid" style="display:none;">
+              <div class="row" style="margin-bottom:10px;">
+                <div class="split">
+                  <span class="badge">dsl_type: <b>mermaid</b></span>
+                  <span class="badge">draft_id: <b id="draftIdMermaid">-</b></span>
+                </div>
+                <div class="hint">* 预留：后续接 SmartMermaid 或 mermaid 渲染组件</div>
+              </div>
+              <textarea class="codebox mono" id="mermaidCode" placeholder="这里是 Mermaid 代码（M7 Draft.code）"></textarea>
+              <div class="hr"></div>
+              <div class="preview"><div class="empty">Mermaid 预览占位</div></div>
+            </div>
+
+            <!-- SmartMermaid 预留 -->
+            <div class="panelWrap" id="tab-smart" style="display:none;">
+              <div class="card">
+                <h4>SmartMermaid（预留）</h4>
+                <div class="hint">
+                  这里留给你后续集成 SmartMermaid：模板化节点库 / 自动布局 / 交互编辑 / 与 final_spec 双向绑定。
+                </div>
+              </div>
+              <div class="empty">SmartMermaid UI 占位</div>
+            </div>
+
+            <!-- SVG-Edit 预留 iframe -->
+            <div class="panelWrap noPadding" id="tab-svgedit" style="display:none;">
+              <iframe id="svgeditFrame" title="SVG-Edit" style="width:100%;height:100%;border:0;background:#fff" src="about:blank"></iframe>
+            </div>
+
+            <!-- KG（M4 Stub） -->
+            <div class="panelWrap" id="tab-kg" style="display:none;">
+              <div class="card">
+                <h4>M4 | Knowledge Graph 补全（Stub）</h4>
+                <div class="hint">展示 entities/relations 缺槽补全、约束校验等（后续接入）。</div>
+              </div>
+              <textarea class="codebox mono" id="kgJson" placeholder="这里展示/编辑 final_spec（JSON）"></textarea>
+            </div>
+
+            <!-- RAG（M5 Stub） -->
+            <div class="panelWrap" id="tab-rag" style="display:none;">
+              <div class="card">
+                <h4>M5 | RAG 检索（Stub）</h4>
+                <div class="hint">展示召回片段、排序、citations（后续接入）。</div>
+              </div>
+              <textarea class="codebox mono" id="ragJson" placeholder="这里展示 citations / retrieval traces（JSON）"></textarea>
+            </div>
+
+            <!-- Logs（M1 RunStepLog） -->
+            <div class="panelWrap" id="tab-logs" style="display:none;">
+              <div class="card">
+                <h4>M1 | RunStepLog（占位）</h4>
+                <div class="hint">这里用于展示每个 step 的输入/输出、耗时、错误栈、artifact 链接。</div>
+              </div>
+              <textarea class="codebox mono" id="logsText" placeholder="RunStepLog 将在这里滚动展示…"></textarea>
+            </div>
+
+          </div>
+
+          <!-- 右侧侧栏：为 M1/M7/Artifacts 预留 -->
+          <aside class="side">
+            <div class="side-head">
+              <div class="side-title">运行与草稿</div>
+              <button class="btn" id="btnRefreshSide">刷新</button>
+            </div>
+
+            <div class="side-body">
+              <div class="card">
+                <h4>当前 Run（M1）</h4>
+                <div class="kv"><span>run_id</span><b class="mono" id="sideRunId">-</b></div>
+                <div class="kv"><span>status</span><b id="sideStatus">-</b></div>
+                <div class="kv"><span>router_reason</span><b id="sideReason">-</b></div>
+              </div>
+
+              <div class="card">
+                <h4>Draft（M7）</h4>
+                <div class="kv"><span>draft_id</span><b id="sideDraftId">-</b></div>
+                <div class="kv"><span>dsl_type</span><b id="sideDsl">-</b></div>
+                <div class="kv"><span>title</span><b id="sideTitle">-</b></div>
+              </div>
+
+              <div class="card">
+                <h4>Artifacts（M1）</h4>
+                <div class="hint">预留：导出文件、截图、渲染图、SVG 产物等。</div>
+                <div class="hr"></div>
+                <div class="hint mono">/api/runs/{id}/artifacts …</div>
+              </div>
+
+              <div class="card">
+                <h4>面板切换策略（核心）</h4>
+                <div class="hint">
+                  M6 返回 <span class="mono">draft.dsl_type</span> 后：
+                  <br>• svg → 打开 SVG（可推 SVG-Edit）
+                  <br>• mermaid → 打开 Mermaid / SmartMermaid
+                  <br>• 其它 dsl → 新增 Tab 占位即可
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+      </section>
+
+    </div>
+  </div>
+  <script>
+    // ============================
+    // Prototype JS：核心链路 + 自动切换（其余模块先占位）
+    // ============================
+  
+    const API_BASE = 'http://127.0.0.1:8626';
+    const el = (id) => document.getElementById(id);
+  
+    const state = {
+      autoSwitch: true,
+      last: null, // 保存 orchestrator 返回 data
+    };
+  
+    // -------- Tabs --------
+    function setActiveTab(tabId){
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tabId);
+      });
+  
+      // 右侧主区域的 panelWrap（注意：class 是 panelWrap，不是 panel）
+      document.querySelectorAll('.panelWrap').forEach(p => {
+        p.style.display = (p.id === tabId) ? 'block' : 'none';
+      });
+  
+      // iframe 面板需要撑满高度（原型处理）
+      const iframePanel = el('tab-svgedit');
+      if (iframePanel && iframePanel.style.display === 'block'){
+        iframePanel.style.height = '100%';
+        const frame = el('svgeditFrame');
+        if (frame) frame.style.height = '100%';
+      }
+    }
+  
+    // Tab 点击
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => setActiveTab(t.dataset.tab));
+    });
+  
+    // -------- 左侧消息 --------
+    function addMsg(role, text){
+      const wrap = document.createElement('div');
+      wrap.className = 'msg ' + (role === 'user' ? 'user' : '');
+      wrap.innerHTML = `
+        <div class="avatar">${role === 'user' ? '我' : 'AI'}</div>
+        <div class="bubble"></div>
+      `;
+      wrap.querySelector('.bubble').textContent = text;
+      el('chatBody').appendChild(wrap);
+      el('chatBody').scrollTop = el('chatBody').scrollHeight;
+    }
+  
+    // -------- SVG 预览 --------
+    function renderSvg(svgText){
+      const host = el('svgPreview');
+      if (!host) return;
+      host.innerHTML = '';
+      try{
+        // 原型不做严格 sanitize；生产要加白名单/DOMPurify
+        host.innerHTML = svgText || '<div class="empty">空 SVG</div>';
+      }catch(e){
+        host.innerHTML = `<div class="empty">SVG 渲染失败：${String(e)}</div>`;
+      }
+    }
+  
+    // -------- 根据 dsl_type 自动切换面板 --------
+    function autoSwitchByDsl(dsl){
+      if (!state.autoSwitch) return;
+      if (dsl === 'svg') setActiveTab('tab-svg');
+      else if (dsl === 'mermaid') setActiveTab('tab-mermaid');
+      else if (dsl === 'smartmermaid') setActiveTab('tab-smart');
+      else setActiveTab('tab-svg');
+    }
+  
+    // -------- 更新侧栏/编辑区 --------
+    function applyResponse(data){
+      state.last = data;
+  
+      const runId = data?.run_id ?? '-';
+      const status = data?.status ?? '-';
+      const draft = data?.draft ?? null;
+      const draftId = data?.draft_id ?? (draft?.id ?? '-');
+  
+      // badges
+      if (el('runBadge')) el('runBadge').textContent = `run: ${runId}`;
+  
+      // side
+      if (el('sideRunId')) el('sideRunId').textContent = runId;
+      if (el('sideStatus')) el('sideStatus').textContent = status;
+      if (el('sideDraftId')) el('sideDraftId').textContent = String(draftId);
+  
+      const routerReason = draft?.meta?.router_reason ?? '-';
+      if (el('sideReason')) el('sideReason').textContent = routerReason;
+  
+      const dslType = draft?.dsl_type ?? 'svg';
+      if (el('sideDsl')) el('sideDsl').textContent = dslType;
+      if (el('dslType')) el('dslType').textContent = dslType;
+      if (el('draftId')) el('draftId').textContent = String(draftId);
+  
+      const title = draft?.meta?.title ?? '-';
+      if (el('sideTitle')) el('sideTitle').textContent = title;
+  
+      // main editor
+      const code = draft?.code ?? '';
+      if (dslType === 'svg'){
+        if (el('svgCode')) el('svgCode').value = code;
+        renderSvg(code);
+      } else if (dslType === 'mermaid'){
+        if (el('mermaidCode')) el('mermaidCode').value = code;
+        if (el('draftIdMermaid')) el('draftIdMermaid').textContent = String(draftId);
+      } else {
+        // 未知 dsl 先塞到 svgCode
+        if (el('svgCode')) el('svgCode').value = code;
+        renderSvg(code);
+      }
+  
+      // KG/RAG/Logs 占位
+      if (el('kgJson')) el('kgJson').value = JSON.stringify(data?.final_spec ?? {}, null, 2);
+      if (el('ragJson')) el('ragJson').value = JSON.stringify(data?.final_spec?.citations ?? [], null, 2);
+  
+      const logLine = `[${new Date().toLocaleTimeString()}] run=${runId} status=${status} dsl=${dslType}`;
+      if (el('logsText')){
+        el('logsText').value = (el('logsText').value + '\n' + logLine).trim();
+      }
+  
+      autoSwitchByDsl(dslType);
+    }
+  
+    // -------- API 调用：/api/orchestrator/run/ --------
+    async function runOrchestrator(text){
+      const url = `${API_BASE}/api/orchestrator/run/`;
+      const payload = { text, output_mode: 'auto' };
+  
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const json = await resp.json();
+      if (!json.ok) throw new Error(json.error || 'unknown_error');
+      return json.data;
+    }
+  
+    // -------- 交互：发送 --------
+    if (el('btnSend')){
+      el('btnSend').addEventListener('click', async () => {
+        const text = (el('prompt')?.value || '').trim();
+        if (!text) return;
+  
+        addMsg('user', text);
+        el('prompt').value = '';
+        addMsg('ai', '已收到，正在编排生成…（M6）');
+  
+        try{
+          const data = await runOrchestrator(text);
+          const dsl = data?.draft?.dsl_type;
+          const title = data?.draft?.meta?.title;
+          addMsg('ai', `生成完成：${title || '-'}\n- dsl_type: ${dsl}\n- draft_id: ${data?.draft_id}\n- run_id: ${data?.run_id}`);
+          applyResponse(data);
+        }catch(e){
+          addMsg('ai', `生成失败：${String(e)}`);
+        }
+      });
+    }
+  
+    // Ctrl/Cmd + Enter 发送
+    if (el('prompt')){
+      el('prompt').addEventListener('keydown', (ev) => {
+        if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter'){
+          el('btnSend')?.click();
+        }
+      });
+    }
+  
+    // 示例
+    if (el('btnExample')){
+      el('btnExample').addEventListener('click', () => {
+        el('prompt').value = '创建一个流程图';
+        el('prompt').focus();
+      });
+    }
+  
+    // 自动切换开关
+    if (el('btnAuto')){
+      el('btnAuto').addEventListener('click', () => {
+        state.autoSwitch = !state.autoSwitch;
+        el('btnAuto').textContent = state.autoSwitch ? '自动切换' : '手动切换';
+      });
+    }
+  
+    // 复制代码
+    if (el('btnCopy')){
+      el('btnCopy').addEventListener('click', async () => {
+        const activeTab = document.querySelector('.tab.active')?.dataset?.tab;
+        let txt = '';
+        if (activeTab === 'tab-mermaid') txt = el('mermaidCode')?.value || '';
+        else txt = el('svgCode')?.value || '';
+  
+        try{
+          await navigator.clipboard.writeText(txt);
+          alert('已复制');
+        }catch(e){
+          alert('复制失败：' + String(e));
+        }
+      });
+    }
+  
+    // 推送：原型里只做“把当前 SVG 草稿推到 iframe 占位”
+    if (el('btnPush')){
+      el('btnPush').addEventListener('click', () => {
+        setActiveTab('tab-svgedit');
+        const frame = el('svgeditFrame');
+        if (!frame) return;
+  
+        const svg = el('svgCode')?.value || '';
+        frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8">
+          <style>
+            body{margin:0;font-family:system-ui;background:#f3f4f6}
+            .box{margin:18px;padding:16px;border-radius:12px;background:#fff;border:1px solid #e5e7eb}
+            pre{white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5}
+          </style></head><body>
+          <div class="box">
+            <b>SVG-Edit（占位）</b>
+            <p style="color:#6b7280">后续这里换成真实 SVG-Edit，并用 postMessage 注入代码。</p>
+            <pre>${escapeHtml(svg)}</pre>
+          </div>
+        </body></html>`;
+      });
+    }
+  
+    // SVG 面板：代码/预览切换
+    if (el('segSvgCode') && el('segSvgPreview')){
+      el('segSvgCode').addEventListener('click', () => {
+        el('segSvgCode').classList.add('active');
+        el('segSvgPreview').classList.remove('active');
+        el('svgCodeWrap').style.display = 'block';
+        el('svgPreviewWrap').style.display = 'none';
+      });
+  
+      el('segSvgPreview').addEventListener('click', () => {
+        el('segSvgPreview').classList.add('active');
+        el('segSvgCode').classList.remove('active');
+        el('svgCodeWrap').style.display = 'none';
+        el('svgPreviewWrap').style.display = 'block';
+        renderSvg(el('svgCode')?.value || '');
+      });
+    }
+  
+    // 主题切换（预留）
+    if (el('btnTheme')){
+      el('btnTheme').addEventListener('click', () => {
+        const root = document.body;
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+      });
+    }
+  
+    // 侧栏刷新（预留）
+    if (el('btnRefreshSide')){
+      el('btnRefreshSide').addEventListener('click', () => {
+        alert('Prototype：后续接 M1 / M7 列表接口刷新');
+      });
+    }
+  
+    // 工具：escape html
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+  
+    // 初始化：确保默认 tab 正确（可选）
+    setActiveTab('tab-svg');
+  </script>
+  
+  <!-- 你下一步把 JS 粘到这里（或引入 external js） -->
+  <!-- <script src="./prototype.js"></script> -->
+</body>
+</html>

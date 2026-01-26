@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SVG Draw | Element UI (White + Dark Toggle) Prototype</title>
+
+  <!-- Vue3 (CDN) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <!-- Element Plus (CDN) -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+  <!-- Element Plus Dark CSS Vars (官方暗黑变量) -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/theme-chalk/dark/css-vars.css" />
+  <script src="https://unpkg.com/element-plus/dist/index.full.min.js"></script>
+
+  <style>
+    /*
+      目标：
+      - 默认白底（Element Plus 默认视觉）
+      - 点击“主题（白/黑）”切换 Element Plus 暗黑（html.dark）
+      - “运行与草稿”默认收起：用右侧抽屉 Drawer 展示（真正收起来，不占布局）
+      - 左侧对话栏可调节宽度
+    */
+
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--el-bg-color-page); }
+    html.dark body { background: var(--el-bg-color-page); }
+
+    #app { height: 100%; }
+
+    .shell {
+      height: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .workspace {
+      height: calc(100vh - 24px);
+      border: 1px solid var(--el-border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--el-bg-color);
+      box-shadow: var(--el-box-shadow-light);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--el-border-color-lighter);
+      background: var(--el-bg-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--el-text-color-primary);
+      font-weight: 700;
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+    }
+
+    /* 左侧 */
+    .left {
+      border-right: 1px solid var(--el-border-color-lighter);
+      background: var(--el-bg-color);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .leftHead {
+      padding: 12px;
+      border-bottom: 1px solid var(--el-border-color-lighter);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .leftTitle {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--el-text-color-primary);
+      line-height: 1.2;
+    }
+
+    .leftSub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--el-text-color-secondary);
+      line-height: 1.35;
+    }
+
+    .chatBody {
+      flex: 1;
+      min-height: 0;
+      padding: 12px;
+      overflow: auto;
+      background: var(--el-bg-color);
+    }
+
+    .msgRow {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .msgRow.user {
+      flex-direction: row-reverse;
+    }
+
+    .bubble {
+      max-width: 85%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--el-border-color-lighter);
+      background: var(--el-fill-color-light);
+      color: var(--el-text-color-primary);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .msgRow.user .bubble {
+      background: var(--el-color-primary-light-9);
+      border-color: var(--el-color-primary-light-7);
+    }
+
+    .chatFoot {
+      padding: 12px;
+      border-top: 1px solid var(--el-border-color-lighter);
+      background: var(--el-bg-color);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .resizer {
+      width: 4px;
+      background: var(--el-border-color);
+      cursor: col-resize;
+      user-select: none;
+    }
+    .resizer:hover {
+      background: var(--el-color-primary);
+    }
+
+    /* 右侧 */
+    .right {
+      flex: 1;
+      min-width: 520px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--el-bg-color);
+    }
+
+    .rightTop {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--el-border-color-lighter);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--el-bg-color);
+    }
+
+    .editorArea {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .editorMain {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      overflow: auto;
+      background: var(--el-bg-color);
+    }
+
+    .codeMono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+    }
+
+    .previewBox {
+      border: 1px dashed var(--el-border-color);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 360px;
+      background: var(--el-fill-color-light);
+    }
+
+    .svgPreviewHost {
+      min-height: 360px;
+      overflow: auto;
+      background: var(--el-bg-color);
+      border-radius: 10px;
+    }
+
+    /* 右侧抽屉把手：始终贴右边缘，中间位置 */
+    .drawerHandle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      width: 34px;
+      height: 64px;
+      border-radius: 10px;
+      border: 1px solid var(--el-border-color-lighter);
+      background: var(--el-bg-color);
+      box-shadow: var(--el-box-shadow-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      color: var(--el-text-color-regular);
+    }
+    .drawerHandle:hover{
+      border-color: var(--el-color-primary-light-5);
+    }
+    .drawerHandle .v{
+      writing-mode: vertical-rl;
+      letter-spacing: 1px;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    @media (max-width: 900px){
+      .main{ flex-direction: column; }
+      .left{ width: 100%; max-width: none; border-right: 0; border-bottom: 1px solid var(--el-border-color-lighter); }
+      .right{ min-width: 0; }
+      .resizer{ display: none; }
+      .drawerHandle{ display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script>
+    const { createApp, ref, reactive, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const API_BASE = 'http://127.0.0.1:8626';
+
+        // UI
+        const isDark = ref(false);
+        const leftMode = ref('chat');
+        const activeTab = ref('svg');
+        const svgMode = ref('code');
+        const autoSwitch = ref(true);
+
+        // ✅ 运行与草稿：默认收起（抽屉）
+        const sideDrawerOpen = ref(false);
+
+        // Left panel width
+        const leftWidth = ref(360);
+
+        // Data
+        const prompt = ref('');
+        const chat = ref([
+          { role: 'ai', text: `默认白底（Element UI 风格）。
+右侧“运行与草稿”已默认收起：点右边小把手可展开。
+左侧对话栏可调节宽度。
+
+输入一句话后：M2→M6→M7，按 draft.dsl_type 自动切面板。
+（SmartMermaid / KG / RAG / Logs 均已留好占位）` },
+        ]);
+
+        const run = reactive({ run_id: '-', status: '-' });
+        const draft = reactive({
+          draft_id: '-',
+          dsl_type: 'svg',
+          title: '-',
+          router_reason: '-',
+          code: '',
+        });
+
+        const finalSpecJson = ref('');
+        const ragJson = ref('');
+        const logsText = ref('');
+        const svgCode = ref('');
+        const mermaidCode = ref('');
+        const svgPreviewRef = ref(null);
+
+        // Theme
+        function applyTheme() {
+          const root = document.documentElement;
+          if (isDark.value) root.classList.add('dark');
+          else root.classList.remove('dark');
+        }
+        function toggleTheme() {
+          isDark.value = !isDark.value;
+          applyTheme();
+        }
+
+        // Drawer
+        function toggleDrawer(){
+          sideDrawerOpen.value = !sideDrawerOpen.value;
+        }
+
+        // Resize left panel
+        function startResize(e) {
+          e.preventDefault();
+          const startX = e.clientX;
+          const startWidth = leftWidth.value;
+          const onMouseMove = (e) => {
+            const delta = e.clientX - startX;
+            leftWidth.value = Math.max(320, Math.min(520, startWidth + delta));
+          };
+          const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          };
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        }
+
+        // Auto switch
+        function autoSwitchByDsl(dslType) {
+          if (!autoSwitch.value) return;
+          if (dslType === 'svg') activeTab.value = 'svg';
+          else if (dslType === 'mermaid') activeTab.value = 'mermaid';
+          else if (dslType === 'smartmermaid') activeTab.value = 'smart';
+          else activeTab.value = 'svg';
+        }
+
+        // SVG preview (prototype)
+        function renderSvg(svgText) {
+          const host = svgPreviewRef.value;
+          if (!host) return;
+          host.innerHTML = '';
+          try {
+            host.innerHTML = svgText || '<div style="color:var(--el-text-color-secondary)">空 SVG</div>';
+          } catch (e) {
+            host.innerHTML = `<div style="color:var(--el-color-danger)">SVG 渲染失败：${String(e)}</div>`;
+          }
+        }
+
+        // API
+        async function runOrchestrator(text) {
+          const url = `${API_BASE}/api/orchestrator/run/`;
+          const payload = { text, output_mode: 'auto' };
+          const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const json = await resp.json();
+          if (!json.ok) throw new Error(json.error || 'unknown_error');
+          return json.data;
+        }
+
+        function appendChat(role, text) {
+          chat.value.push({ role, text });
+          nextTick(() => {
+            const box = document.getElementById('chatBody');
+            if (box) box.scrollTop = box.scrollHeight;
+          });
+        }
+
+        function applyResponse(data) {
+          run.run_id = data?.run_id ?? '-';
+          run.status = data?.status ?? '-';
+
+          const d = data?.draft ?? {};
+          draft.draft_id = String(data?.draft_id ?? d?.id ?? '-');
+          draft.dsl_type = d?.dsl_type ?? 'svg';
+          draft.title = d?.meta?.title ?? '-';
+          draft.router_reason = d?.meta?.router_reason ?? '-';
+          draft.code = d?.code ?? '';
+
+          if (draft.dsl_type === 'svg') {
+            svgCode.value = draft.code;
+            mermaidCode.value = '';
+            nextTick(() => {
+              if (svgMode.value === 'preview') renderSvg(svgCode.value);
+            });
+          } else if (draft.dsl_type === 'mermaid') {
+            mermaidCode.value = draft.code;
+            svgCode.value = '';
+          } else {
+            svgCode.value = draft.code;
+            mermaidCode.value = '';
+          }
+
+          finalSpecJson.value = JSON.stringify(data?.final_spec ?? {}, null, 2);
+          ragJson.value = JSON.stringify(data?.final_spec?.citations ?? [], null, 2);
+
+          const line = `[${new Date().toLocaleTimeString()}] run=${run.run_id} status=${run.status} dsl=${draft.dsl_type}`;
+          logsText.value = (logsText.value + '\n' + line).trim();
+
+          autoSwitchByDsl(draft.dsl_type);
+        }
+
+        // Actions
+        async function onSend() {
+          const text = (prompt.value || '').trim();
+          if (!text) return;
+
+          appendChat('user', text);
+          prompt.value = '';
+          appendChat('ai', '已收到，正在编排生成…（M6）');
+
+          try {
+            const data = await runOrchestrator(text);
+            appendChat('ai', `生成完成：${data?.draft?.meta?.title || '-'}
+- dsl_type: ${data?.draft?.dsl_type}
+- draft_id: ${data?.draft_id}
+- run_id: ${data?.run_id}`);
+            applyResponse(data);
+          } catch (e) {
+            appendChat('ai', `生成失败：${String(e)}`);
+          }
+        }
+
+        function onExample(){
+          prompt.value = '创建一个流程图';
+        }
+
+        async function onCopyCode(){
+          const txt = activeTab.value === 'mermaid' ? (mermaidCode.value || '') : (svgCode.value || '');
+          try {
+            await navigator.clipboard.writeText(txt);
+            ElementPlus.ElMessage.success('已复制');
+          } catch (e) {
+            ElementPlus.ElMessage.error('复制失败：' + String(e));
+          }
+        }
+
+        function escapeHtml(str) {
+          return String(str)
+            .replaceAll('&','&amp;')
+            .replaceAll('<','&lt;')
+            .replaceAll('>','&gt;')
+            .replaceAll('"','&quot;')
+            .replaceAll("'",'&#39;');
+        }
+
+        function onPush(){
+          activeTab.value = 'svgedit';
+          nextTick(() => {
+            const frame = document.getElementById('svgeditFrame');
+            if (!frame) return;
+            const svg = svgCode.value || '';
+            frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8" />
+              <style>
+                body{margin:0;font-family:system-ui;background:#f5f7fa}
+                .box{margin:18px;padding:16px;border-radius:12px;background:#fff;border:1px solid #ebeef5}
+                pre{white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5}
+              </style>
+            </head><body>
+              <div class="box">
+                <b>SVG-Edit（占位）</b>
+                <p style="color:#909399">后续替换为真实 SVG-Edit，并用 postMessage 注入代码。</p>
+                <pre>${escapeHtml(svg)}</pre>
+              </div>
+            </body></html>`;
+          });
+        }
+
+        function toggleAuto(){
+          autoSwitch.value = !autoSwitch.value;
+        }
+
+        // init
+        nextTick(applyTheme);
+
+        return {
+          isDark, leftMode, activeTab, svgMode, autoSwitch,
+          sideDrawerOpen,
+          leftWidth,
+          prompt, chat, run, draft,
+          finalSpecJson, ragJson, logsText,
+          svgCode, mermaidCode,
+          svgPreviewRef,
+          toggleTheme, toggleDrawer,
+          startResize,
+          onSend, onExample, onCopyCode, onPush,
+          toggleAuto,
+          renderSvg,
+        };
+      },
+
+      template: `
+        <div class="shell">
+          <div class="workspace">
+
+            <!-- 右侧把手（真正收起来） -->
+            <div class="drawerHandle" @click="toggleDrawer" :title="sideDrawerOpen ? '关闭侧栏' : '打开侧栏'">
+              <span class="v">{{ sideDrawerOpen ? '关闭' : '运行' }}</span>
+            </div>
+
+            <div class="header">
+              <div class="brand">
+                <el-tag type="success" effect="light">就绪</el-tag>
+                <span>SVG Draw</span>
+              </div>
+
+              <div style="display:flex; gap:10px; align-items:center;">
+                <el-button @click="toggleTheme">主题（白/黑）</el-button>
+                <el-button type="primary">新建</el-button>
+                <el-button>Runs</el-button>
+              </div>
+            </div>
+
+            <div class="main">
+              <!-- 左侧：对话 -->
+              <aside class="left" :style="{ width: leftWidth + 'px' }">
+                <div class="leftHead">
+                  <div>
+                    <div class="leftTitle">对话生成绘图</div>
+                    <div class="leftSub">链路：M2 输入 → M6 编排 → M7 草稿（M3/M4/M5 先 Stub）</div>
+                  </div>
+                  <el-segmented v-model="leftMode" :options="[
+                    { label: '对话', value: 'chat' },
+                    { label: '记录', value: 'history' },
+                  ]" />
+                </div>
+
+                <div class="chatBody" id="chatBody">
+                  <div v-for="(m, idx) in chat" :key="idx" class="msgRow" :class="{ user: m.role==='user' }">
+                    <div class="bubble">{{ m.text }}</div>
+                  </div>
+                </div>
+
+                <div class="chatFoot">
+                  <el-input v-model="prompt" type="textarea" :rows="4" placeholder="例如：创建一个流程图 / 画一个系统架构图 / 生成泳道图…" />
+
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <el-tag effect="plain">run: {{ run.run_id }}</el-tag>
+                      <el-tag effect="plain">draft: {{ draft.draft_id }}</el-tag>
+                      <el-tag effect="plain">dsl: {{ draft.dsl_type }}</el-tag>
+                    </div>
+
+                    <div style="display:flex; gap:8px;">
+                      <el-button @click="onExample">示例</el-button>
+                      <el-button type="primary" @click="onSend">发送</el-button>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+
+              <!-- Resizer for left panel -->
+              <div class="resizer" @mousedown="startResize"></div>
+
+              <!-- 右侧：编辑器 -->
+              <section class="right">
+                <div class="rightTop">
+                  <el-tabs v-model="activeTab" type="card" style="flex:1;">
+                    <el-tab-pane label="SVG" name="svg" />
+                    <el-tab-pane label="Mermaid" name="mermaid" />
+                    <el-tab-pane label="SmartMermaid" name="smart" />
+                    <el-tab-pane label="SVG-Edit" name="svgedit" />
+                    <el-tab-pane label="KG" name="kg" />
+                    <el-tab-pane label="RAG" name="rag" />
+                    <el-tab-pane label="Logs" name="logs" />
+                  </el-tabs>
+
+                  <div style="display:flex; gap:8px;">
+                    <el-button @click="toggleAuto" :type="autoSwitch ? 'primary' : 'default'">
+                      {{ autoSwitch ? '自动切换' : '手动切换' }}
+                    </el-button>
+                    <el-button @click="onCopyCode">复制代码</el-button>
+                    <el-button type="primary" @click="onPush">推送</el-button>
+                  </div>
+                </div>
+
+                <div class="editorArea">
+                  <div class="editorMain">
+
+                    <!-- SVG -->
+                    <template v-if="activeTab==='svg'">
+                      <el-card shadow="never">
+                        <template #header>
+                          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                              <el-tag effect="plain">dsl_type: {{ draft.dsl_type }}</el-tag>
+                              <el-tag effect="plain">draft_id: {{ draft.draft_id }}</el-tag>
+                            </div>
+                            <el-radio-group v-model="svgMode" size="small">
+                              <el-radio-button label="code">代码</el-radio-button>
+                              <el-radio-button label="preview">预览</el-radio-button>
+                            </el-radio-group>
+                          </div>
+                        </template>
+
+                        <div v-if="svgMode==='code'">
+                          <el-input v-model="svgCode" type="textarea" :rows="16" class="codeMono" placeholder="SVG 代码（M7 Draft.code）" />
+                        </div>
+
+                        <div v-else class="previewBox">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="color:var(--el-text-color-secondary); font-size:12px;">SVG 预览（prototype）</span>
+                            <el-button size="small" @click="renderSvg(svgCode)">刷新预览</el-button>
+                          </div>
+                          <div class="svgPreviewHost" ref="svgPreviewRef"></div>
+                        </div>
+                      </el-card>
+                    </template>
+
+                    <!-- Mermaid -->
+                    <template v-else-if="activeTab==='mermaid'">
+                      <el-card shadow="never">
+                        <template #header>
+                          <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>Mermaid（预留渲染）</b>
+                            <span style="color:var(--el-text-color-secondary); font-size:12px;">后续接 SmartMermaid 或 mermaid.js</span>
+                          </div>
+                        </template>
+                        <el-input v-model="mermaidCode" type="textarea" :rows="16" class="codeMono" placeholder="Mermaid 代码（M7 Draft.code）" />
+                        <div style="height:12px"></div>
+                        <div class="previewBox" style="color:var(--el-text-color-secondary)">Mermaid 预览占位</div>
+                      </el-card>
+                    </template>
+
+                    <!-- SmartMermaid -->
+                    <template v-else-if="activeTab==='smart'">
+                      <el-card shadow="never">
+                        <template #header>
+                          <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>SmartMermaid（预留）</b>
+                            <el-tag type="info" effect="light">未集成</el-tag>
+                          </div>
+                        </template>
+                        <div style="color:var(--el-text-color-regular); line-height:1.7;">
+                          这里预留：模板化节点库 / 自动布局 / 交互编辑 / 与 final_spec.scene 双向绑定。
+                        </div>
+                        <div style="height:12px"></div>
+                        <div class="previewBox" style="color:var(--el-text-color-secondary)">SmartMermaid UI 占位</div>
+                      </el-card>
+                    </template>
+
+                    <!-- SVG-Edit -->
+                    <template v-else-if="activeTab==='svgedit'">
+                      <el-card shadow="never">
+                        <template #header>
+                          <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>SVG-Edit（占位 iframe）</b>
+                            <el-tag type="info" effect="light">后续替换真实 SVG-Edit</el-tag>
+                          </div>
+                        </template>
+                        <div class="previewBox" style="padding:0; overflow:hidden;">
+                          <iframe id="svgeditFrame" title="SVG-Edit" style="width:100%;height:420px;border:0;background:#fff" src="about:blank"></iframe>
+                        </div>
+                      </el-card>
+                    </template>
+
+                    <!-- KG -->
+                    <template v-else-if="activeTab==='kg'">
+                      <el-card shadow="never">
+                        <template #header><b>M4 | Knowledge Graph（Stub）</b></template>
+                        <el-input v-model="finalSpecJson" type="textarea" :rows="18" class="codeMono" placeholder="final_spec JSON" />
+                      </el-card>
+                    </template>
+
+                    <!-- RAG -->
+                    <template v-else-if="activeTab==='rag'">
+                      <el-card shadow="never">
+                        <template #header><b>M5 | RAG（Stub）</b></template>
+                        <el-input v-model="ragJson" type="textarea" :rows="18" class="codeMono" placeholder="citations / retrieval traces" />
+                      </el-card>
+                    </template>
+
+                    <!-- Logs -->
+                    <template v-else-if="activeTab==='logs'">
+                      <el-card shadow="never">
+                        <template #header><b>M1 | RunStepLog（占位）</b></template>
+                        <el-input v-model="logsText" type="textarea" :rows="18" class="codeMono" placeholder="RunStepLog..." />
+                      </el-card>
+                    </template>
+
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- ✅ 抽屉：真正的“运行与草稿（可收起）” -->
+            <el-drawer
+              v-model="sideDrawerOpen"
+              direction="rtl"
+              size="380px"
+              :with-header="true"
+              append-to-body
+            >
+              <template #header>
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                  <b>运行与草稿</b>
+                  <el-button size="small" text @click="sideDrawerOpen=false">关闭</el-button>
+                </div>
+              </template>
+
+              <el-descriptions :column="1" border size="small">
+                <el-descriptions-item label="run_id">{{ run.run_id }}</el-descriptions-item>
+                <el-descriptions-item label="status">{{ run.status }}</el-descriptions-item>
+                <el-descriptions-item label="router_reason">{{ draft.router_reason }}</el-descriptions-item>
+              </el-descriptions>
+
+              <div style="height:12px"></div>
+
+              <el-descriptions :column="1" border size="small">
+                <el-descriptions-item label="draft_id">{{ draft.draft_id }}</el-descriptions-item>
+                <el-descriptions-item label="dsl_type">{{ draft.dsl_type }}</el-descriptions-item>
+                <el-descriptions-item label="title">{{ draft.title }}</el-descriptions-item>
+              </el-descriptions>
+
+              <div style="height:12px"></div>
+
+              <el-alert
+                title="SmartMermaid / 其它绘图面板预留"
+                type="info"
+                :closable="false"
+                show-icon
+                description="后续把 SmartMermaid、SVG-Edit、KG/RAG 的真实内容替换进来即可；面板切换由 draft.dsl_type 驱动。"
+              />
+
+              <div style="height:12px"></div>
+
+              <el-alert
+                title="注意"
+                type="warning"
+                :closable="false"
+                show-icon
+                description="SVG 预览当前 prototype 未做 sanitize；生产建议加白名单或 DOMPurify。"
+              />
+            </el-drawer>
+
+          </div>
+        </div>
+      `
+    }).use(ElementPlus).mount('#app');
+  </script>
+</body>
+</html>
