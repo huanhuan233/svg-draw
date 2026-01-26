@@ -2,7 +2,7 @@
   <div class="svg-editor-pane">
     <div class="right-top">
       <el-tabs v-model="activeTab" type="card" style="flex: 1;">
-        <el-tab-pane label="SVG" name="svg" />
+        <el-tab-pane label="Graphviz" name="graphviz" />
         <el-tab-pane label="Mermaid" name="mermaid" />
         <el-tab-pane label="SmartMermaid" name="smart" />
         <el-tab-pane label="SVG-Edit" name="svgedit" />
@@ -25,39 +25,13 @@
 
     <div class="editor-area">
       <div class="editor-main" :class="{ 'svgedit-active': activeTab === 'svgedit' }">
-        <!-- SVG -->
-        <template v-if="activeTab === 'svg'">
-          <el-card shadow="never">
-            <template #header>
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                  <el-tag effect="plain">dsl_type: {{ draft.dsl_type }}</el-tag>
-                  <el-tag effect="plain">draft_id: {{ draft.draft_id }}</el-tag>
-                </div>
-                <el-radio-group v-model="svgMode" size="small">
-                  <el-radio-button label="code">代码</el-radio-button>
-                  <el-radio-button label="preview">预览</el-radio-button>
-                </el-radio-group>
-              </div>
-            </template>
-
-            <div v-if="svgMode === 'code'">
-              <SvgCodeEditor
-                :model-value="svgCode"
-                :rows="16"
-              />
-            </div>
-
-            <div v-else class="preview-box">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="color: var(--el-text-color-secondary); font-size: 12px;">
-                  SVG 预览（prototype）
-                </span>
-                <el-button size="small" @click="handleRefreshPreview">刷新预览</el-button>
-              </div>
-              <div class="svg-preview-host" ref="svgPreviewRef"></div>
-            </div>
-          </el-card>
+        <!-- Graphviz -->
+        <template v-if="activeTab === 'graphviz'">
+          <GraphvizPanel
+            :graphviz-code="graphvizCode"
+            :draft="draft"
+            @update:graphviz-mode="handleUpdateGraphvizMode"
+          />
         </template>
 
         <!-- Mermaid -->
@@ -121,6 +95,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import SvgCodeEditor from './svg/SvgCodeEditor.vue'
+import GraphvizPanel from './graphviz/GraphvizPanel.vue'
 import MermaidPanel from './mermaid/MermaidPanel.vue'
 import SmartMermaidPanel from './mermaid/SmartMermaidPanel.vue'
 import SvgEditPanel from './svgedit/SvgEditPanel.vue'
@@ -132,6 +107,7 @@ interface Props {
   svgMode: SvgMode
   autoSwitch: boolean
   svgCode: string
+  graphvizCode: string
   mermaidCode: string
   finalSpecJson: string
   ragJson: string
@@ -154,8 +130,6 @@ const emit = defineEmits<{
   (e: 'copy'): void
   (e: 'push'): void
 }>()
-
-const svgPreviewRef = ref<HTMLElement | null>(null)
 
 const activeTab = ref(props.activeTab)
 const svgMode = ref(props.svgMode)
@@ -185,38 +159,9 @@ watch(autoSwitch, (val) => {
   emit('update:autoSwitch', val)
 })
 
-// 监听 svgCode 变化，自动更新预览
-watch(() => props.svgCode, () => {
-  if (activeTab.value === 'svg' && svgMode.value === 'preview') {
-    nextTick(() => {
-      renderSvg(props.svgCode)
-    })
-  }
-})
-
-// 监听 svgMode 变化，切换时渲染预览
-watch(svgMode, (val) => {
-  if (val === 'preview' && activeTab.value === 'svg') {
-    nextTick(() => {
-      renderSvg(props.svgCode)
-    })
-  }
-})
-
-const renderSvg = (svgText: string) => {
-  const host = svgPreviewRef.value
-  if (!host) return
-  
-  host.innerHTML = ''
-  try {
-    host.innerHTML = svgText || '<div style="color: var(--el-text-color-secondary)">空 SVG</div>'
-  } catch (e) {
-    host.innerHTML = `<div style="color: var(--el-color-danger)">SVG 渲染失败：${String(e)}</div>`
-  }
-}
-
-const handleRefreshPreview = () => {
-  renderSvg(props.svgCode)
+const handleUpdateGraphvizMode = (value: 'code' | 'preview') => {
+  // Graphviz 模式切换处理（如果需要）
+  console.log('Graphviz mode:', value)
 }
 
 const handleToggleAuto = () => {
@@ -290,12 +235,5 @@ const handlePush = () => {
   padding: 12px;
   min-height: 360px;
   background: var(--el-fill-color-light);
-}
-
-.svg-preview-host {
-  min-height: 360px;
-  overflow: auto;
-  background: var(--el-bg-color);
-  border-radius: 10px;
 }
 </style>

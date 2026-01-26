@@ -19,7 +19,8 @@ export interface CreateSvgDrawParams {
 
 // ========== 后端响应类型（与后端契约保持一致） ==========
 
-export type DslType = 'svg' | 'mermaid' | 'smartmermaid'
+// 注意：后端可能返回 'svg' 或 'graphviz'，前端统一作为 Graphviz 处理
+export type DslType = 'svg' | 'graphviz' | 'mermaid' | 'smartmermaid'
 
 export interface DraftMeta {
   title?: string

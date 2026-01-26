@@ -49,6 +49,7 @@
             :svg-mode="svgMode"
             :auto-switch="autoSwitch"
             :svg-code="svgCode"
+            :graphviz-code="graphvizCode"
             :mermaid-code="mermaidCode"
             :final-spec-json="finalSpecJson"
             :rag-json="ragJson"
@@ -97,6 +98,7 @@ const {
   run,
   draft,
   svgCode,
+  graphvizCode,
   mermaidCode,
   finalSpecJson,
   ragJson,

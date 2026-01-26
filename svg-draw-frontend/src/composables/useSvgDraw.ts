@@ -3,14 +3,14 @@ import { ElMessage } from 'element-plus'
 import { svgDrawService } from '../services/svgDrawService'
 import type { ChatMessage, RunResponse, DslType } from '../utils/types'
 
-export type ActiveTab = 'svg' | 'mermaid' | 'smart' | 'svgedit' | 'kg' | 'rag' | 'logs'
+export type ActiveTab = 'graphviz' | 'mermaid' | 'smart' | 'svgedit' | 'kg' | 'rag' | 'logs'
 export type SvgMode = 'code' | 'preview'
 
 export function useSvgDraw() {
   // ========== UI 状态 ==========
   const isDark = ref(false)
   const leftMode = ref<'chat' | 'history'>('chat')
-  const activeTab = ref<ActiveTab>('svg')
+  const activeTab = ref<ActiveTab>('graphviz')
   const svgMode = ref<SvgMode>('code')
   const autoSwitch = ref(true)
   const drawerOpen = ref(false)
@@ -44,6 +44,7 @@ export function useSvgDraw() {
   })
 
   const svgCode = ref('')
+  const graphvizCode = ref('')
   const mermaidCode = ref('')
   const finalSpecJson = ref('')
   const ragJson = ref('')
@@ -98,14 +99,15 @@ export function useSvgDraw() {
   const autoSwitchByDsl = (dslType: DslType) => {
     if (!autoSwitch.value) return
 
-    if (dslType === 'svg') {
-      activeTab.value = 'svg'
+    // 后端可能返回 'svg' 或 'graphviz'，都映射到 'graphviz' 标签页
+    if (dslType === 'svg' || dslType === 'graphviz') {
+      activeTab.value = 'graphviz'
     } else if (dslType === 'mermaid') {
       activeTab.value = 'mermaid'
     } else if (dslType === 'smartmermaid') {
       activeTab.value = 'smart'
     } else {
-      activeTab.value = 'svg'
+      activeTab.value = 'graphviz'
     }
   }
 
@@ -126,19 +128,17 @@ export function useSvgDraw() {
     draft.code = d.code ?? ''
 
     // 根据 dsl_type 更新代码
-    if (draft.dsl_type === 'svg') {
-      svgCode.value = draft.code
+    // 后端可能返回 'svg' 或 'graphviz'，都作为 Graphviz 处理
+    if (draft.dsl_type === 'svg' || draft.dsl_type === 'graphviz') {
+      graphvizCode.value = draft.code
+      svgCode.value = draft.code // 保留 svgCode 用于向后兼容
       mermaidCode.value = ''
-      // 如果当前是 preview 模式，需要重新渲染
-      nextTick(() => {
-        if (svgMode.value === 'preview') {
-          // 触发预览更新（由 SvgPreview 组件监听 svgCode 变化）
-        }
-      })
     } else if (draft.dsl_type === 'mermaid') {
       mermaidCode.value = draft.code
       svgCode.value = ''
+      graphvizCode.value = ''
     } else {
+      graphvizCode.value = draft.code
       svgCode.value = draft.code
       mermaidCode.value = ''
     }
@@ -228,9 +228,14 @@ export function useSvgDraw() {
 
   // ========== 复制代码 ==========
   const copyCurrentCode = async () => {
-    const txt = activeTab.value === 'mermaid' 
-      ? (mermaidCode.value || '') 
-      : (svgCode.value || '')
+    let txt = ''
+    if (activeTab.value === 'mermaid') {
+      txt = mermaidCode.value || ''
+    } else if (activeTab.value === 'graphviz') {
+      txt = graphvizCode.value || ''
+    } else {
+      txt = svgCode.value || ''
+    }
     
     if (!txt) {
       ElMessage.warning('代码为空')
@@ -301,6 +306,7 @@ export function useSvgDraw() {
     run,
     draft,
     svgCode,
+    graphvizCode,
     mermaidCode,
     finalSpecJson,
     ragJson,
