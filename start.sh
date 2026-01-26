@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SVG Draw 项目一键启动脚本
-# 端口：8626（后端），8625（前端）
+# 配置从 config.env 文件加载
 
 # 颜色输出
 GREEN='\033[0;32m'
@@ -13,8 +13,14 @@ NC='\033[0m' # No Color
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/svg-draw-backend"
 FRONTEND_DIR="$PROJECT_ROOT/svg-draw-frontend"
-BACKEND_PORT=8626
-FRONTEND_PORT=8625
+
+# 加载统一配置
+if [ -f "$PROJECT_ROOT/config.env" ]; then
+    source "$PROJECT_ROOT/config.env"
+else
+    echo -e "${RED}错误: 未找到配置文件 config.env${NC}"
+    exit 1
+fi
 
 # 清理函数
 cleanup() {
@@ -100,7 +106,10 @@ fi
 
 # 启动后端服务器（后台运行）
 echo -e "${YELLOW}启动后端服务...${NC}"
-python manage.py runserver 0.0.0.0:$BACKEND_PORT > /tmp/svgdraw-backend.log 2>&1 &
+# 设置环境变量供 Django settings.py 使用
+export FRONTEND_URL="${FRONTEND_URL}"
+export FRONTEND_PORT="${FRONTEND_PORT}"
+python manage.py runserver ${BACKEND_HOST}:${BACKEND_PORT} > /tmp/svgdraw-backend.log 2>&1 &
 BACKEND_PID=$!
 
 # 等待后端启动并检查
@@ -167,11 +176,25 @@ if ! kill -0 $FRONTEND_PID 2>/dev/null; then
     exit 1
 fi
 
-# 检查端口是否真的在监听
+# 检查端口是否真的在监听，并检测实际端口
+ACTUAL_FRONTEND_PORT=$FRONTEND_PORT
 for i in {1..15}; do
+    # 检查配置的端口
     if lsof -Pi :$FRONTEND_PORT -sTCP:LISTEN -t >/dev/null 2>&1 || netstat -tuln 2>/dev/null | grep -q ":$FRONTEND_PORT " || ss -tuln 2>/dev/null | grep -q ":$FRONTEND_PORT "; then
+        ACTUAL_FRONTEND_PORT=$FRONTEND_PORT
         break
     fi
+    # 如果配置端口没启动，检查其他可能端口（8625-8630）
+    for port in $(seq $FRONTEND_PORT $((FRONTEND_PORT + 5))); do
+        if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1 || netstat -tuln 2>/dev/null | grep -q ":$port " || ss -tuln 2>/dev/null | grep -q ":$port "; then
+            # 检查是否是我们的 vite 进程
+            PID=$(lsof -ti :$port 2>/dev/null | head -1)
+            if [ ! -z "$PID" ] && ps -p $PID -o cmd= 2>/dev/null | grep -q "vite"; then
+                ACTUAL_FRONTEND_PORT=$port
+                break 2
+            fi
+        fi
+    done
     sleep 1
 done
 
@@ -182,10 +205,15 @@ echo -e "${GREEN}========================================${NC}"
 # 获取服务器 IP
 SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || ip addr show 2>/dev/null | grep "inet " | grep -v "127.0.0.1" | head -1 | awk '{print $2}' | cut -d'/' -f1 || echo "localhost")
 
-echo -e "${GREEN}后端 API: http://localhost:$BACKEND_PORT${NC}"
+echo -e "${GREEN}后端 API: ${BACKEND_URL}${NC}"
 echo -e "${GREEN}后端 API (服务器): http://$SERVER_IP:$BACKEND_PORT${NC}"
-echo -e "${GREEN}前端页面: http://localhost:$FRONTEND_PORT${NC}"
-echo -e "${GREEN}前端页面 (服务器): http://$SERVER_IP:$FRONTEND_PORT${NC}"
+if [ "$ACTUAL_FRONTEND_PORT" != "$FRONTEND_PORT" ]; then
+    echo -e "${YELLOW}前端页面: http://localhost:$ACTUAL_FRONTEND_PORT (端口 $FRONTEND_PORT 被占用，已自动切换到 $ACTUAL_FRONTEND_PORT)${NC}"
+    echo -e "${YELLOW}前端页面 (服务器): http://$SERVER_IP:$ACTUAL_FRONTEND_PORT${NC}"
+else
+    echo -e "${GREEN}前端页面: ${FRONTEND_URL}${NC}"
+    echo -e "${GREEN}前端页面 (服务器): http://$SERVER_IP:$FRONTEND_PORT${NC}"
+fi
 echo -e "${YELLOW}后端日志: /tmp/svgdraw-backend.log${NC}"
 echo -e "${YELLOW}前端日志: /tmp/svgdraw-frontend.log${NC}"
 echo ""

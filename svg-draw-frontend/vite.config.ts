@@ -1,15 +1,20 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+// 从环境变量读取配置，如果没有则使用默认值
+const FRONTEND_PORT = parseInt(process.env.VITE_FRONTEND_PORT || '8625', 10)
+const FRONTEND_HOST = process.env.VITE_FRONTEND_HOST || '0.0.0.0'
+const BACKEND_URL = process.env.VITE_BACKEND_URL || 'http://localhost:8626'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
   server: {
-    host: '0.0.0.0',  // 允许外部访问
-    port: 8625,
+    host: FRONTEND_HOST,
+    port: FRONTEND_PORT,
     proxy: {
       '/api': {
-        target: 'http://localhost:8626',
+        target: BACKEND_URL,
         changeOrigin: true,
       },
     },

@@ -8,8 +8,16 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-BACKEND_PORT=8626
-FRONTEND_PORT=8625
+# 项目根目录
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 加载统一配置
+if [ -f "$PROJECT_ROOT/config.env" ]; then
+    source "$PROJECT_ROOT/config.env"
+else
+    echo -e "${RED}错误: 未找到配置文件 config.env${NC}"
+    exit 1
+fi
 
 echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}  停止 SVG Draw 项目服务${NC}"

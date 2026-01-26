@@ -1,7 +1,10 @@
 import axios from 'axios'
 
+// 统一访问地址配置
+// 开发环境：从环境变量读取，如果没有则使用默认值
+// 生产环境：使用相对路径，由 vite proxy 处理
 const API_BASE_URL = import.meta.env.DEV 
-  ? 'http://localhost:8626/api'  // 开发环境
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:8626/api')  // 开发环境
   : '/api'  // 生产环境
 
 const apiClient = axios.create({

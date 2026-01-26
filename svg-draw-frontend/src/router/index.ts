@@ -1,11 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import SvgDrawList from '../pages/SvgDrawList.vue'
+import SvgDrawWorkspace from '../pages/SvgDrawWorkspace.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: SvgDrawList,
+    name: 'DrawWorkspace',
+    component: SvgDrawWorkspace,
+  },
+  {
+    path: '/draw/:id',
+    name: 'DrawWorkspaceWithId',
+    component: SvgDrawWorkspace,
   },
 ]
 

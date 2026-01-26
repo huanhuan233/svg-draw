@@ -28,9 +28,15 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # CORS settings
+# 从环境变量读取前端地址，如果没有则使用默认值
+import os
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:8625')
+FRONTEND_PORT = os.environ.get('FRONTEND_PORT', '8625')
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8625",
-    "http://127.0.0.1:8625",
+    FRONTEND_URL,
+    f"http://127.0.0.1:{FRONTEND_PORT}",
+    f"http://localhost:{FRONTEND_PORT}",
 ]
 # 允许所有来源（开发环境，生产环境应限制）
 CORS_ALLOW_ALL_ORIGINS = True
@@ -59,6 +65,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'api',
+    # 新增模块化 apps（带标号）
+    'm1_runs',
+    'm2_inputs',
+    'm3_llm_providers',
+    'm4_knowledge_graph',
+    'm5_rag',
+    'm6_orchestrator',
+    'm7_editors',
 ]
 
 MIDDLEWARE = [
@@ -138,6 +152,59 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Media files (user uploads)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'runs': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'm1_runs': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'orchestrator': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'm6_orchestrator': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
