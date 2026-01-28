@@ -1,4 +1,4 @@
-import { ref, reactive, nextTick, type Ref } from 'vue'
+import { ref, reactive, type Ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { svgDrawService } from '../services/svgDrawService'
 import type { ChatMessage, RunResponse, DslType } from '../utils/types'
@@ -8,7 +8,6 @@ export type SvgMode = 'code' | 'preview'
 
 export function useSvgDraw() {
   // ========== UI 状态 ==========
-  const isDark = ref(false)
   const leftMode = ref<'chat' | 'history'>('chat')
   const activeTab = ref<ActiveTab>('graphviz')
   const svgMode = ref<SvgMode>('code')
@@ -49,26 +48,6 @@ export function useSvgDraw() {
   const finalSpecJson = ref('')
   const ragJson = ref('')
   const logsText = ref('')
-
-  // ========== 主题切换 ==========
-  const applyTheme = () => {
-    const root = document.documentElement
-    if (isDark.value) {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-  }
-
-  const toggleTheme = () => {
-    isDark.value = !isDark.value
-    applyTheme()
-  }
-
-  // 初始化主题
-  nextTick(() => {
-    applyTheme()
-  })
 
   // ========== 抽屉 ==========
   const toggleDrawer = () => {
@@ -292,7 +271,6 @@ export function useSvgDraw() {
 
   return {
     // UI 状态
-    isDark,
     leftMode,
     activeTab,
     svgMode,
@@ -313,7 +291,6 @@ export function useSvgDraw() {
     logsText,
     
     // 方法
-    toggleTheme,
     toggleDrawer,
     startResize,
     sendPrompt,

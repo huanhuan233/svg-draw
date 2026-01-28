@@ -17,7 +17,6 @@
         </div>
 
         <div class="header-actions">
-          <el-button @click="handleToggleTheme">主题（白/黑）</el-button>
           <el-button type="primary">新建</el-button>
           <el-button>Runs</el-button>
         </div>
@@ -84,7 +83,6 @@ import type { ActiveTab, SvgMode } from '../composables/useSvgDraw'
 
 const {
   // UI 状态
-  isDark,
   leftMode,
   activeTab,
   svgMode,
@@ -105,7 +103,6 @@ const {
   logsText,
   
   // 方法
-  toggleTheme,
   toggleDrawer,
   startResize,
   sendPrompt,
@@ -113,10 +110,6 @@ const {
   pushToSvgEdit,
   loadExample,
 } = useSvgDraw()
-
-const handleToggleTheme = () => {
-  toggleTheme()
-}
 
 const handleToggleDrawer = () => {
   toggleDrawer()
