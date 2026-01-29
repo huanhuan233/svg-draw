@@ -66,25 +66,35 @@ function generateShadowThemeStyles(theme: Theme): string {
       /* ========== 面板/菜单背景 ========== */
       .menu,
       .image-lib,
-      .overall {
-        background: transparent !important;
-        background-color: transparent !important;
+      .overall,
+      #options-container {
+        background: var(--se-panel, #ffffff) !important;
+        background-color: var(--se-panel, #ffffff) !important;
+        border: 1px solid var(--se-border, #dcdfe6) !important;
+        border-radius: var(--se-radius-md, 4px) !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1) !important;
       }
       
-      .menu-item {
+      .menu-item,
+      [aria-label="option"] {
         background-color: transparent !important;
         background: transparent !important;
-        color: var(--se-text-primary, #303133) !important;
+        color: var(--se-primary, #409eff) !important; /* 未选中时：蓝色文字 */
         border-color: var(--se-border-lighter, #e4e7ed) !important;
       }
       
-      .menu-item:hover {
+      .menu-item:hover,
+      [aria-label="option"]:hover {
         background-color: var(--se-primary-weak, #ecf5ff) !important;
+        color: var(--se-primary, #409eff) !important;
       }
       
-      .menu-item.pressed {
-        background-color: var(--se-primary-light, #ecf5ff) !important;
-        color: var(--se-primary, #409eff) !important;
+      .menu-item.pressed,
+      .menu-item.selected,
+      [aria-label="option"].pressed,
+      [aria-label="option"].selected {
+        background-color: var(--se-primary, #409eff) !important; /* 选中后：蓝底 */
+        color: #ffffff !important; /* 选中后：白字 */
       }
       
       /* ========== 移除深色背景 ========== */
@@ -105,6 +115,21 @@ function generateShadowThemeStyles(theme: Theme): string {
       se-button[pressed] {
         border-color: var(--se-primary, #409eff) !important;
       }
+      
+      /* ========== se-zoom 和 se-list 的 slot 内容样式 ========== */
+      ::slotted(*) {
+        color: var(--se-primary, #409eff) !important; /* 未选中时：蓝色文字 */
+        background-color: transparent !important;
+        background: transparent !important;
+      }
+      
+      ::slotted(*:hover) {
+        background-color: var(--se-primary-weak, #ecf5ff) !important;
+        color: var(--se-primary, #409eff) !important;
+      }
+      
+      /* 注意：选中状态需要在 se-list-item 的 Shadow DOM 内部处理 */
+      /* 因为 ::slotted() 无法访问 slot 内容内部的 Shadow DOM */
     `
   } else {
     // 深色模式
@@ -157,25 +182,35 @@ function generateShadowThemeStyles(theme: Theme): string {
       /* ========== 面板/菜单背景 ========== */
       .menu,
       .image-lib,
-      .overall {
-        background: transparent !important;
-        background-color: transparent !important;
+      .overall,
+      #options-container {
+        background: var(--se-panel, #1d1e1f) !important;
+        background-color: var(--se-panel, #1d1e1f) !important;
+        border: 1px solid var(--se-border-dark, #4c4d4f) !important;
+        border-radius: var(--se-radius-md, 4px) !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
       }
       
-      .menu-item {
+      .menu-item,
+      [aria-label="option"] {
         background-color: transparent !important;
         background: transparent !important;
-        color: var(--se-text-primary, #e5eaf3) !important;
+        color: var(--se-primary, #409eff) !important; /* 未选中时：蓝色文字 */
         border-color: var(--se-border-dark, #4c4d4f) !important;
       }
       
-      .menu-item:hover {
+      .menu-item:hover,
+      [aria-label="option"]:hover {
         background-color: rgba(64, 158, 255, 0.1) !important;
+        color: var(--se-primary, #409eff) !important;
       }
       
-      .menu-item.pressed {
-        background-color: rgba(64, 158, 255, 0.2) !important;
-        color: var(--se-primary, #409eff) !important;
+      .menu-item.pressed,
+      .menu-item.selected,
+      [aria-label="option"].pressed,
+      [aria-label="option"].selected {
+        background-color: var(--se-primary, #409eff) !important; /* 选中后：蓝底 */
+        color: #ffffff !important; /* 选中后：白字 */
       }
       
       /* ========== 移除深色背景 ========== */
@@ -196,6 +231,21 @@ function generateShadowThemeStyles(theme: Theme): string {
       se-button[pressed] {
         border-color: #ffffff !important;
       }
+      
+      /* ========== se-zoom 和 se-list 的 slot 内容样式 ========== */
+      ::slotted(*) {
+        color: var(--se-primary, #409eff) !important; /* 未选中时：蓝色文字 */
+        background-color: transparent !important;
+        background: transparent !important;
+      }
+      
+      ::slotted(*:hover) {
+        background-color: rgba(64, 158, 255, 0.1) !important;
+        color: var(--se-primary, #409eff) !important;
+      }
+      
+      /* 注意：选中状态需要在 se-list-item 的 Shadow DOM 内部处理 */
+      /* 因为 ::slotted() 无法访问 slot 内容内部的 Shadow DOM */
     `
   }
 }
@@ -374,7 +424,7 @@ function patchComponentShadowDom(
     }
     
     // 递归处理 Shadow DOM 内的其他 Web Components
-    const nestedComponents = shadowRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton, se-zoom, se-select, se-list') as NodeListOf<HTMLElement>
+    const nestedComponents = shadowRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton, se-zoom, se-select, se-list, se-list-item') as NodeListOf<HTMLElement>
     nestedComponents.forEach((nested) => {
       const result = patchComponentShadowDom(nested, theme, doc)
       shadowRootsPatched += result.shadowRootsPatched
@@ -400,7 +450,7 @@ export function patchSvgEditShadowThemes(doc: Document, theme: Theme): void {
   try {
     // 查找所有 Web Components
     const components = Array.from(
-      doc.querySelectorAll('se-explorerbutton, se-flyingbutton, se-zoom, se-button, se-select, se-list')
+      doc.querySelectorAll('se-explorerbutton, se-flyingbutton, se-zoom, se-button, se-select, se-list, se-list-item')
     ) as HTMLElement[]
     
     if (components.length === 0) {
