@@ -50,3 +50,8 @@ Thumbs.db
 .vscode/
 .idea/
 .cursor/
+
+########################
+# Project specific
+########################
+.svgdraw.pid

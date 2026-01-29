@@ -16,6 +16,7 @@
     </template>
     <div class="svgedit-container">
       <iframe
+        ref="iframeRef"
         id="svgeditFrame"
         title="SVG-Edit"
         class="svgedit-iframe"
@@ -46,12 +47,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { bindThemeToIframe, ensureIframeTheme } from '../../utils/svgeditThemeBridge'
+import { useTheme } from '../../composables/useTheme'
 
 const iframeSrc = ref('/svgedit/editor/index.html')
 const isReady = ref(false)
 const isFullscreen = ref(false)
 const topHover = ref(false)
+const iframeRef = ref<HTMLIFrameElement | null>(null)
+
+// 主题管理
+const { getTheme, watchTheme } = useTheme()
+let themeCleanup: (() => void) | null = null
 
 const exitFullscreen = () => {
   isFullscreen.value = false
@@ -60,6 +68,11 @@ const exitFullscreen = () => {
 const handleIframeLoad = () => {
   console.log('SVG-Edit iframe loaded')
   // 等待 bridge.js 发送 READY 消息
+  
+  // 确保主题已应用（iframe reload 后）
+  if (iframeRef.value) {
+    ensureIframeTheme(iframeRef.value, getTheme())
+  }
 }
 
 const applyFullscreen = (enabled: boolean) => {
@@ -93,12 +106,27 @@ const handleMessage = (event: MessageEvent) => {
 onMounted(() => {
   window.addEventListener('message', handleMessage)
   window.addEventListener('keydown', handleKeydown)
+  
+  // 绑定主题到 iframe（使用 nextTick 确保 iframe ref 已赋值）
+  nextTick(() => {
+    themeCleanup = bindThemeToIframe({
+      iframeRef,
+      getTheme,
+      watchTheme,
+    })
+  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('message', handleMessage)
   window.removeEventListener('keydown', handleKeydown)
   applyFullscreen(false)
+  
+  // 清理主题监听
+  if (themeCleanup) {
+    themeCleanup()
+    themeCleanup = null
+  }
 })
 
 watch(isFullscreen, (val) => {

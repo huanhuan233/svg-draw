@@ -10,6 +10,7 @@ NC='\033[0m' # No Color
 
 # 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PID_FILE="$PROJECT_ROOT/.svgdraw.pid"
 
 # 加载统一配置
 if [ -f "$PROJECT_ROOT/config.env" ]; then
@@ -23,13 +24,28 @@ echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}  停止 SVG Draw 项目服务${NC}"
 echo -e "${YELLOW}========================================${NC}"
 
+# 优先从 PID 文件读取进程 ID
+BACKEND_PIDS=""
+FRONTEND_PIDS=""
+
+if [ -f "$PID_FILE" ]; then
+    PIDS=$(cat "$PID_FILE" 2>/dev/null)
+    BACKEND_PIDS=$(echo $PIDS | awk '{print $1}')
+    FRONTEND_PIDS=$(echo $PIDS | awk '{print $2}')
+    echo -e "${GREEN}从 PID 文件读取进程 ID${NC}"
+fi
+
 # 停止后端服务
 echo -e "${YELLOW}[1/2] 停止后端服务 (端口: $BACKEND_PORT)...${NC}"
-BACKEND_PIDS=$(lsof -ti :$BACKEND_PORT 2>/dev/null || netstat -tlnp 2>/dev/null | grep ":$BACKEND_PORT " | awk '{print $7}' | cut -d'/' -f1 | sort -u || ss -tlnp 2>/dev/null | grep ":$BACKEND_PORT " | grep -oP 'pid=\K[0-9]+' | sort -u || echo "")
 
-if [ -z "$BACKEND_PIDS" ]; then
-    # 尝试通过进程名查找
-    BACKEND_PIDS=$(ps aux | grep "manage.py runserver.*$BACKEND_PORT" | grep -v grep | awk '{print $2}' | sort -u)
+if [ -z "$BACKEND_PIDS" ] || ! kill -0 $BACKEND_PIDS 2>/dev/null; then
+    # 如果 PID 文件不存在或进程已停止，尝试通过端口查找
+    BACKEND_PIDS=$(lsof -ti :$BACKEND_PORT 2>/dev/null || netstat -tlnp 2>/dev/null | grep ":$BACKEND_PORT " | awk '{print $7}' | cut -d'/' -f1 | sort -u || ss -tlnp 2>/dev/null | grep ":$BACKEND_PORT " | grep -oP 'pid=\K[0-9]+' | sort -u || echo "")
+    
+    if [ -z "$BACKEND_PIDS" ]; then
+        # 尝试通过进程名查找
+        BACKEND_PIDS=$(ps aux | grep "manage.py runserver.*$BACKEND_PORT" | grep -v grep | awk '{print $2}' | sort -u)
+    fi
 fi
 
 if [ -z "$BACKEND_PIDS" ]; then
@@ -51,19 +67,23 @@ fi
 
 # 停止前端服务
 echo -e "${YELLOW}[2/2] 停止前端服务 (端口: $FRONTEND_PORT)...${NC}"
-FRONTEND_PIDS=$(lsof -ti :$FRONTEND_PORT 2>/dev/null || netstat -tlnp 2>/dev/null | grep ":$FRONTEND_PORT " | awk '{print $7}' | cut -d'/' -f1 | sort -u || ss -tlnp 2>/dev/null | grep ":$FRONTEND_PORT " | grep -oP 'pid=\K[0-9]+' | sort -u || echo "")
 
-if [ -z "$FRONTEND_PIDS" ]; then
-    # 尝试通过进程名查找
-    FRONTEND_PIDS=$(ps aux | grep -E "(vite|npm.*dev)" | grep -v grep | awk '{print $2}' | sort -u)
-    # 进一步过滤，只保留相关的 vite 进程
-    FILTERED_PIDS=""
-    for PID in $FRONTEND_PIDS; do
-        if ps -p $PID -o cmd= 2>/dev/null | grep -qE "(svg-draw-frontend|vite.*8625)"; then
-            FILTERED_PIDS="$FILTERED_PIDS $PID"
-        fi
-    done
-    FRONTEND_PIDS=$(echo $FILTERED_PIDS | tr ' ' '\n' | sort -u | tr '\n' ' ')
+if [ -z "$FRONTEND_PIDS" ] || ! kill -0 $FRONTEND_PIDS 2>/dev/null; then
+    # 如果 PID 文件不存在或进程已停止，尝试通过端口查找
+    FRONTEND_PIDS=$(lsof -ti :$FRONTEND_PORT 2>/dev/null || netstat -tlnp 2>/dev/null | grep ":$FRONTEND_PORT " | awk '{print $7}' | cut -d'/' -f1 | sort -u || ss -tlnp 2>/dev/null | grep ":$FRONTEND_PORT " | grep -oP 'pid=\K[0-9]+' | sort -u || echo "")
+    
+    if [ -z "$FRONTEND_PIDS" ]; then
+        # 尝试通过进程名查找
+        FRONTEND_PIDS=$(ps aux | grep -E "(vite|npm.*dev)" | grep -v grep | awk '{print $2}' | sort -u)
+        # 进一步过滤，只保留相关的 vite 进程
+        FILTERED_PIDS=""
+        for PID in $FRONTEND_PIDS; do
+            if ps -p $PID -o cmd= 2>/dev/null | grep -qE "(svg-draw-frontend|vite.*8625)"; then
+                FILTERED_PIDS="$FILTERED_PIDS $PID"
+            fi
+        done
+        FRONTEND_PIDS=$(echo $FILTERED_PIDS | tr ' ' '\n' | sort -u | tr '\n' ' ')
+    fi
 fi
 
 if [ -z "$FRONTEND_PIDS" ]; then
@@ -82,6 +102,9 @@ else
     done
     echo -e "${GREEN}✓ 前端服务已停止${NC}"
 fi
+
+# 删除 PID 文件
+rm -f "$PID_FILE" 2>/dev/null || true
 
 # 等待一下确保进程完全停止
 sleep 1

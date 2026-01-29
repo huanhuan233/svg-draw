@@ -2,6 +2,8 @@
 
 # SVG Draw 项目一键启动脚本
 # 配置从 config.env 文件加载
+# 用法: ./start.sh              # 默认后台运行
+#       ./start.sh --foreground  # 前台运行（用于调试）
 
 # 颜色输出
 GREEN='\033[0;32m'
@@ -9,10 +11,17 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# 默认后台运行模式，使用 --foreground 或 -f 参数前台运行
+DAEMON_MODE=true
+if [[ "$1" == "--foreground" ]] || [[ "$1" == "-f" ]] || [[ "$1" == "--fg" ]]; then
+    DAEMON_MODE=false
+fi
+
 # 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/svg-draw-backend"
 FRONTEND_DIR="$PROJECT_ROOT/svg-draw-frontend"
+PID_FILE="$PROJECT_ROOT/.svgdraw.pid"
 
 # 加载统一配置
 if [ -f "$PROJECT_ROOT/config.env" ]; then
@@ -24,20 +33,28 @@ fi
 
 # 清理函数
 cleanup() {
-    echo ""
-    echo -e "${YELLOW}正在停止服务...${NC}"
+    if [ "$DAEMON_MODE" = false ]; then
+        echo ""
+        echo -e "${YELLOW}正在停止服务...${NC}"
+    fi
     if [ ! -z "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null || true
     fi
     if [ ! -z "$FRONTEND_PID" ]; then
         kill $FRONTEND_PID 2>/dev/null || true
     fi
-    echo -e "${GREEN}服务已停止${NC}"
+    # 删除 PID 文件
+    rm -f "$PID_FILE" 2>/dev/null || true
+    if [ "$DAEMON_MODE" = false ]; then
+        echo -e "${GREEN}服务已停止${NC}"
+    fi
     exit 0
 }
 
-# 捕获退出信号
-trap cleanup SIGINT SIGTERM
+# 捕获退出信号（仅在非后台模式下）
+if [ "$DAEMON_MODE" = false ]; then
+    trap cleanup SIGINT SIGTERM
+fi
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  SVG Draw 项目启动脚本${NC}"
@@ -216,10 +233,22 @@ else
 fi
 echo -e "${YELLOW}后端日志: /tmp/svgdraw-backend.log${NC}"
 echo -e "${YELLOW}前端日志: /tmp/svgdraw-frontend.log${NC}"
+
+# 保存 PID 到文件
+echo "$BACKEND_PID $FRONTEND_PID" > "$PID_FILE"
+
+if [ "$DAEMON_MODE" = true ]; then
+    echo ""
+    echo -e "${GREEN}服务已在后台启动${NC}"
+    echo -e "${YELLOW}使用以下命令停止服务:${NC}"
+    echo -e "  ${GREEN}./stop.sh${NC} 或 ${GREEN}kill \$(cat $PID_FILE | awk '{print \$1}') \$(cat $PID_FILE | awk '{print \$2}')${NC}"
+    exit 0
+fi
+
 echo ""
 echo -e "${YELLOW}按 Ctrl+C 停止服务${NC}"
 
-# 保持脚本运行，监控进程
+# 保持脚本运行，监控进程（仅在前台模式）
 while true; do
     sleep 5
     # 检查后端进程是否还在运行

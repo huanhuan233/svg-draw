@@ -1,0 +1,140 @@
+/**
+ * SVG-Edit Element Plus Light Theme
+ * 目标：让 SVG-Edit 看起来像 Element Plus 浅色风格
+ */
+
+/* CSS 变量定义（Element Plus 浅色主题风格） */
+:root {
+  --svgedit-bg: #ffffff;
+  --svgedit-bg-page: #f7f8fa;
+  --svgedit-panel-bg: #ffffff;
+  --svgedit-border: #dcdfe6;
+  --svgedit-border-lighter: #e4e7ed;
+  --svgedit-text-primary: #303133;
+  --svgedit-text-regular: #606266;
+  --svgedit-text-secondary: #909399;
+  --svgedit-text-placeholder: #c0c4cc;
+  --svgedit-primary: #409eff;
+  --svgedit-primary-light: #ecf5ff;
+  --svgedit-fill-light: #f5f7fa;
+  --svgedit-fill-lighter: #fafafa;
+  --svgedit-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 基础背景 */
+body {
+  background-color: var(--svgedit-bg-page) !important;
+  color: var(--svgedit-text-primary) !important;
+}
+
+/* SVG-Edit 主容器 */
+#svg_editor,
+#container,
+.svgedit-container {
+  background-color: var(--svgedit-bg) !important;
+}
+
+/* 工具栏 */
+.toolbar,
+#tools_left,
+#tools_right,
+.toolset {
+  background-color: var(--svgedit-panel-bg) !important;
+  border-color: var(--svgedit-border-lighter) !important;
+}
+
+/* 工具栏按钮 */
+.tool_button,
+.toolbar button,
+.toolbar .button {
+  background-color: var(--svgedit-fill-light) !important;
+  border-color: var(--svgedit-border) !important;
+  color: var(--svgedit-text-primary) !important;
+}
+
+.tool_button:hover,
+.toolbar button:hover,
+.toolbar .button:hover {
+  background-color: var(--svgedit-primary-light) !important;
+  border-color: var(--svgedit-primary) !important;
+  color: var(--svgedit-primary) !important;
+}
+
+.tool_button:active,
+.toolbar button:active,
+.toolbar .button:active {
+  background-color: var(--svgedit-primary) !important;
+  color: #ffffff !important;
+}
+
+/* 输入框 */
+input[type="text"],
+input[type="number"],
+input[type="color"],
+select,
+textarea {
+  background-color: var(--svgedit-bg) !important;
+  border-color: var(--svgedit-border) !important;
+  color: var(--svgedit-text-primary) !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="color"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--svgedit-primary) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--svgedit-text-placeholder) !important;
+}
+
+/* 面板 */
+.panel,
+.dialog,
+.modal {
+  background-color: var(--svgedit-panel-bg) !important;
+  border-color: var(--svgedit-border-lighter) !important;
+  box-shadow: var(--svgedit-shadow) !important;
+}
+
+/* 分割线 */
+hr,
+.separator,
+.divider {
+  border-color: var(--svgedit-border-lighter) !important;
+}
+
+/* 文本 */
+p,
+span,
+label,
+div {
+  color: var(--svgedit-text-primary) !important;
+}
+
+/* 链接 */
+a {
+  color: var(--svgedit-primary) !important;
+}
+
+a:hover {
+  color: #66b1ff !important;
+}
+
+/* 选中状态 */
+.selected,
+.active {
+  background-color: var(--svgedit-primary-light) !important;
+  border-color: var(--svgedit-primary) !important;
+}
+
+/* 禁用状态 */
+.disabled,
+:disabled {
+  background-color: var(--svgedit-fill-lighter) !important;
+  color: var(--svgedit-text-placeholder) !important;
+  cursor: not-allowed !important;
+}
