@@ -35,6 +35,7 @@
             @update:left-mode="handleUpdateLeftMode"
             @send="handleSend"
             @example="handleExample"
+            @push="handlePushToSvgEdit"
           />
         </aside>
 
@@ -54,6 +55,7 @@
             :rag-json="ragJson"
             :logs-text="logsText"
             :draft="draft"
+            :can-push="canPushToSvgEdit"
             @update:active-tab="handleUpdateActiveTab"
             @update:svg-mode="handleUpdateSvgMode"
             @update:auto-switch="handleUpdateAutoSwitch"
@@ -101,6 +103,7 @@ const {
   finalSpecJson,
   ragJson,
   logsText,
+  canPushToSvgEdit,
   
   // 方法
   toggleDrawer,

@@ -19,7 +19,7 @@
           {{ autoSwitch ? '自动切换' : '手动切换' }}
         </el-button>
         <el-button @click="handleCopyCode">复制代码</el-button>
-        <el-button type="primary" @click="handlePush">推送</el-button>
+        <el-button type="primary" @click="handlePush" :disabled="!canPush">推送</el-button>
       </div>
     </div>
 
@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import SvgCodeEditor from './svg/SvgCodeEditor.vue'
 import GraphvizPanel from './graphviz/GraphvizPanel.vue'
 import MermaidPanel from './mermaid/MermaidPanel.vue'
@@ -119,6 +119,7 @@ interface Props {
     router_reason: string
     code: string
   }
+  canPush?: boolean
 }
 
 const props = defineProps<Props>()
@@ -134,6 +135,7 @@ const emit = defineEmits<{
 const activeTab = ref(props.activeTab)
 const svgMode = ref(props.svgMode)
 const autoSwitch = ref(props.autoSwitch)
+const canPush = computed(() => props.canPush ?? true)
 
 watch(() => props.activeTab, (val) => {
   activeTab.value = val

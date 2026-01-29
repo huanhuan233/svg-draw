@@ -62,4 +62,8 @@ export interface RunResponse {
 export interface ChatMessage {
   role: 'user' | 'ai' | 'system'
   text: string
+  /** 仅 assistant：'generating' 表示正在伪流式展示，'done' 表示完成可推送 */
+  status?: 'generating' | 'done'
+  /** 仅 assistant：后端返回的完整 SVG 文本，用于打字机效果 */
+  fullCode?: string
 }

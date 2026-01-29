@@ -1,4 +1,4 @@
-import { ref, reactive, type Ref } from 'vue'
+import { ref, reactive, computed, nextTick, type Ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { svgDrawService } from '../services/svgDrawService'
 import type { ChatMessage, RunResponse, DslType } from '../utils/types'
@@ -135,61 +135,74 @@ export function useSvgDraw() {
     autoSwitchByDsl(draft.dsl_type)
   }
 
-  // ========== 发送提示词 ==========
+  // ========== 发送提示词（后端一次性返回，前端伪流式展示） ==========
+  const TYPING_CHUNK_MS = 12
+  const TYPING_CHUNK_SIZE = 2
+
   const sendPrompt = async (text: string) => {
     const trimmedText = (text || '').trim()
     if (!trimmedText) return
 
-    // 追加用户消息
+    // 1. 追加用户消息
     messages.value.push({
       role: 'user',
       text: trimmedText,
     })
     prompt.value = ''
-    
-    // 滚动到底部
     await nextTick()
     scrollChatToBottom()
 
-    // 追加 AI 占位消息
+    // 2. 立刻插入一条 assistant 消息（状态 generating，内容为空）
     messages.value.push({
       role: 'ai',
-      text: '已收到，正在编排生成…（M6）',
+      text: '',
+      status: 'generating',
     })
     await nextTick()
     scrollChatToBottom()
 
     try {
-      // 调用编排接口
+      // 3. 调用 POST /api/orchestrator/run（非流式，一次性返回完整结果）
       const data = await svgDrawService.runOrchestrator(trimmedText, 'auto')
-      
-      // 更新 AI 消息
+      const fullCode = (data?.draft?.code ?? '') as string
       const lastMessage = messages.value[messages.value.length - 1]
-      if (lastMessage.role === 'ai') {
-        const draftTitle = data?.draft?.meta?.title || '-'
-        const dslType = data?.draft?.dsl_type || '-'
-        const draftId = data?.draft_id || '-'
-        const runId = data?.run_id || '-'
-        
-        lastMessage.text = `生成完成：${draftTitle}
-- dsl_type: ${dslType}
-- draft_id: ${draftId}
-- run_id: ${runId}`
+      if (lastMessage.role !== 'ai') return
+
+      lastMessage.fullCode = fullCode
+      if (!fullCode) {
+        lastMessage.text = '（未返回 SVG 内容）'
+        lastMessage.status = 'done'
+        applyResponse(data)
+        await nextTick()
+        scrollChatToBottom()
+        return
       }
-      
-      // 应用响应数据
-      applyResponse(data)
-      
+
+      // 4. 对 draft.code 做打字机效果（chunk 追加）
+      let pos = 0
+      const timer = setInterval(() => {
+        pos += TYPING_CHUNK_SIZE
+        if (pos >= fullCode.length) {
+          clearInterval(timer)
+          lastMessage.text = fullCode
+          lastMessage.status = 'done'
+          applyResponse(data)
+          scrollChatToBottom()
+          return
+        }
+        lastMessage.text = fullCode.slice(0, pos)
+        scrollChatToBottom()
+      }, TYPING_CHUNK_MS)
+
       await nextTick()
       scrollChatToBottom()
     } catch (error: any) {
-      // 更新错误消息
       const lastMessage = messages.value[messages.value.length - 1]
       if (lastMessage.role === 'ai') {
         lastMessage.text = `生成失败：${error.message || String(error)}`
+        lastMessage.status = 'done'
       }
       ElMessage.error(error.message || '生成失败')
-      
       await nextTick()
       scrollChatToBottom()
     }
@@ -229,38 +242,39 @@ export function useSvgDraw() {
     }
   }
 
+  // 未完成生成前禁止推送（SVG 不完整会导致编辑器异常）
+  const canPushToSvgEdit = computed(() => {
+    const last = messages.value[messages.value.length - 1]
+    const generating = last?.role === 'ai' && (last as ChatMessage).status === 'generating'
+    return !!draft.code && !generating
+  })
+
   // ========== 推送到 SVG-Edit ==========
   const pushToSvgEdit = () => {
-    // 切换到 svgedit tab
     activeTab.value = 'svgedit'
-    
-    // 等待 tab 切换完成后再推送
-    nextTick(() => {
+    const svg = svgCode.value || ''
+    if (!svg) {
+      ElMessage.warning('SVG 代码为空')
+      return
+    }
+
+    const doPush = () => {
       const frame = document.getElementById('svgeditFrame') as HTMLIFrameElement
-      if (!frame || !frame.contentWindow) {
-        ElMessage.warning('SVG-Edit 未就绪')
+      if (!frame?.contentWindow) {
+        ElMessage.warning('SVG-Edit 未就绪，请稍后再点推送')
         return
       }
-
-      const svg = svgCode.value || ''
-      if (!svg) {
-        ElMessage.warning('SVG 代码为空')
-        return
-      }
-
       try {
-        // 使用 postMessage 推送
-        frame.contentWindow.postMessage(
-          {
-            type: 'IMPORT_SVG',
-            svg: svg,
-          },
-          '*'
-        )
+        frame.contentWindow.postMessage({ type: 'IMPORT_SVG', svg }, '*')
         ElMessage.success('已推送到 SVG-Edit')
       } catch (e) {
         ElMessage.error('推送失败：' + String(e))
       }
+    }
+
+    nextTick(() => {
+      // iframe 与 bridge 需时间加载并完成 init()，延迟后再推送
+      setTimeout(doPush, 1200)
     })
   }
 
@@ -296,6 +310,7 @@ export function useSvgDraw() {
     sendPrompt,
     copyCurrentCode,
     pushToSvgEdit,
+    canPushToSvgEdit,
     loadExample,
   }
 }

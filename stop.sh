@@ -94,7 +94,6 @@ else
             echo -e "${YELLOW}停止前端进程 (PID: $PID)...${NC}"
             kill $PID 2>/dev/null || true
             sleep 1
-            # 如果还在运行，强制杀死
             if kill -0 $PID 2>/dev/null; then
                 kill -9 $PID 2>/dev/null || true
             fi
@@ -102,6 +101,17 @@ else
     done
     echo -e "${GREEN}✓ 前端服务已停止${NC}"
 fi
+
+# 若端口仍被占用（例如子进程 node 未随 npm 退出），按端口再杀一次
+for PORT in $BACKEND_PORT $FRONTEND_PORT; do
+    REMAIN=$(lsof -ti :$PORT 2>/dev/null || true)
+    if [ -n "$REMAIN" ]; then
+        echo -e "${YELLOW}端口 $PORT 仍被占用，清理进程: $REMAIN${NC}"
+        for p in $REMAIN; do kill $p 2>/dev/null || true; done
+        sleep 1
+        for p in $REMAIN; do kill -9 $p 2>/dev/null || true; done
+    fi
+done
 
 # 删除 PID 文件
 rm -f "$PID_FILE" 2>/dev/null || true

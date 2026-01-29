@@ -21,7 +21,21 @@
         class="msg-row"
         :class="{ user: msg.role === 'user' }"
       >
-        <div class="bubble">{{ msg.text }}</div>
+        <div class="bubble-wrap">
+          <div class="bubble">
+            {{ msg.text }}
+            <span v-if="msg.role === 'ai' && msg.status === 'generating'" class="cursor">|</span>
+          </div>
+          <el-button
+            v-if="msg.role === 'ai' && msg.status === 'done' && isLast(idx) && draft.code"
+            type="primary"
+            size="small"
+            class="push-btn"
+            @click="handlePush"
+          >
+            推送到右侧 SVG-Edit
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -77,7 +91,14 @@ const emit = defineEmits<{
   (e: 'update:leftMode', value: 'chat' | 'history'): void
   (e: 'send', text: string): void
   (e: 'example'): void
+  (e: 'push'): void
 }>()
+
+const isLast = (idx: number) => idx === props.messages.length - 1
+
+const handlePush = () => {
+  emit('push')
+}
 
 const sending = ref(false)
 
@@ -169,8 +190,14 @@ const handleExample = () => {
   flex-direction: row-reverse;
 }
 
-.bubble {
+.bubble-wrap {
   max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubble {
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--el-border-color-lighter);
@@ -179,6 +206,21 @@ const handleExample = () => {
   font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.bubble .cursor {
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.push-btn {
+  align-self: flex-start;
 }
 
 .msg-row.user .bubble {

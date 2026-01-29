@@ -126,6 +126,10 @@ echo -e "${YELLOW}启动后端服务...${NC}"
 # 设置环境变量供 Django settings.py 使用
 export FRONTEND_URL="${FRONTEND_URL}"
 export FRONTEND_PORT="${FRONTEND_PORT}"
+# SiliconFlow（若在 config.env 中已设置则传给后端）
+[ -n "${SILICONFLOW_API_KEY}" ] && export SILICONFLOW_API_KEY
+[ -n "${SILICONFLOW_BASE_URL}" ] && export SILICONFLOW_BASE_URL
+[ -n "${SILICONFLOW_MODEL}" ] && export SILICONFLOW_MODEL
 python manage.py runserver ${BACKEND_HOST}:${BACKEND_PORT} > /tmp/svgdraw-backend.log 2>&1 &
 BACKEND_PID=$!
 
@@ -181,6 +185,9 @@ fi
 
 # 启动前端服务器（后台运行）
 echo -e "${YELLOW}启动前端服务...${NC}"
+# 前端请求后端地址（与 config.env 中 BACKEND_URL 一致，便于通过 IP 访问）
+export VITE_API_URL="${BACKEND_URL}/api"
+export VITE_BACKEND_URL="${BACKEND_URL}"
 npm run dev > /tmp/svgdraw-frontend.log 2>&1 &
 FRONTEND_PID=$!
 

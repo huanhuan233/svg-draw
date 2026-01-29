@@ -50,6 +50,7 @@ class Artifact(models.Model):
         ('scene_spec', '场景规范'),
         ('final_spec', '最终规范'),
         ('dsl_draft', 'DSL 草稿'),
+        ('draft_svg', 'SVG 草稿'),
         ('code', '代码'),
     ]
     

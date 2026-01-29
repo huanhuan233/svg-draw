@@ -9,23 +9,28 @@
   // 等待 SVG-Edit 编辑器初始化完成
   let editorReady = false
   let svgEditor = null
+  // 若在编辑器就绪前收到 IMPORT_SVG，先缓存，就绪后自动应用
+  let pendingImportSvg = null
 
-  // 监听编辑器初始化
+  // 监听编辑器初始化（发现 window.svgEditor 后延迟再标记就绪，确保 init() 完成）
   const checkEditorReady = () => {
-    // 尝试从全局获取编辑器实例
-    // SVG-Edit 可能将编辑器实例挂载在 window 上
     if (window.svgEditor || window.editor) {
       svgEditor = window.svgEditor || window.editor
-      editorReady = true
-      sendReadyMessage()
-      
-      // 尝试访问 canvas 对象并验证方法
       const canvas = svgEditor?.canvas || svgEditor?.svgCanvas
       if (canvas) {
-        console.log('[SVG-Edit Bridge] Canvas found, setSvgString available:', typeof canvas.setSvgString === 'function')
+        console.log('[SVG-Edit Bridge] Editor found, loadSvgString:', typeof svgEditor.loadSvgString === 'function')
       }
+      // 延迟 800ms 再标记就绪并发送 READY，给 init() 时间完成
+      setTimeout(function () {
+        editorReady = true
+        sendReadyMessage()
+        if (pendingImportSvg) {
+          const svg = pendingImportSvg
+          pendingImportSvg = null
+          importSvg(svg)
+        }
+      }, 800)
     } else {
-      // 延迟重试
       setTimeout(checkEditorReady, 100)
     }
   }
@@ -46,11 +51,14 @@
 
   // 监听来自父页面的消息
   const handleMessage = (event) => {
-    // 安全检查：只处理来自同源的消息
-    // 在生产环境中应该检查 event.origin
     if (event.data?.type === 'IMPORT_SVG') {
-      console.log('[SVG-Edit Bridge] Received IMPORT_SVG:', event.data.svg)
-      importSvg(event.data.svg)
+      const svg = event.data.svg
+      console.log('[SVG-Edit Bridge] Received IMPORT_SVG, editorReady:', editorReady)
+      if (editorReady && svgEditor) {
+        importSvg(svg)
+      } else {
+        pendingImportSvg = svg
+      }
     } else if (event.data?.type === 'FIT_TO_SCREEN') {
       console.log('[SVG-Edit Bridge] Received FIT_TO_SCREEN')
       fitToScreen()
@@ -288,7 +296,24 @@
     }
 
     try {
-      // 方法1: 尝试使用 svgCanvas.setSvgString (最正确的方法)
+      // 方法1: 优先使用 Editor.loadSvgString（与 ext-opensave 一致，本仓库 Editor 支持）
+      if (svgEditor && typeof svgEditor.loadSvgString === 'function') {
+        const p = svgEditor.loadSvgString(svgText, { noAlert: true })
+        if (p && typeof p.then === 'function') {
+          p.then(function () {
+            console.log('[SVG-Edit Bridge] SVG imported via loadSvgString')
+            adjustViewAfterImport()
+          }).catch(function (e) {
+            console.warn('[SVG-Edit Bridge] loadSvgString failed:', e)
+          })
+          return
+        }
+        console.log('[SVG-Edit Bridge] SVG imported via loadSvgString')
+        adjustViewAfterImport()
+        return
+      }
+
+      // 方法2: 尝试 svgCanvas.setSvgString
       if (svgEditor) {
         const canvas = svgEditor.canvas || svgEditor.svgCanvas
         if (canvas && typeof canvas.setSvgString === 'function') {
@@ -296,7 +321,6 @@
             const success = canvas.setSvgString(svgText, false)
             if (success) {
               console.log('[SVG-Edit Bridge] SVG imported via setSvgString')
-              // 导入后自动调整视图
               adjustViewAfterImport()
               return
             } else {
@@ -308,7 +332,7 @@
         }
       }
 
-      // 方法2: 尝试使用 Editor 的 importSvg 方法
+      // 方法3: 尝试 Editor.importSvg
       if (svgEditor && typeof svgEditor.importSvg === 'function') {
         try {
           svgEditor.importSvg(svgText)
