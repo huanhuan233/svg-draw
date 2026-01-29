@@ -3,8 +3,6 @@
  * 用于在宿主 Vue 应用中向 SVG-Edit iframe 注入主题 CSS
  */
 
-import { patchSvgEditDom, ENABLE_SVGEDIT_PATCH } from './svgeditSkinPatcher'
-
 export type Theme = 'light' | 'dark'
 
 const TOKENS_LINK_ID = 'svgedit-tokens-link'
@@ -35,7 +33,6 @@ export async function ensureIframeTheme(
           resolve()
         }
         doc.addEventListener('DOMContentLoaded', handler)
-        // 如果已经加载完成，立即 resolve
         if (doc.readyState !== 'loading') {
           resolve()
         }
@@ -49,7 +46,6 @@ export async function ensureIframeTheme(
       tokensLink.id = TOKENS_LINK_ID
       tokensLink.rel = 'stylesheet'
       tokensLink.type = 'text/css'
-      // 插入到 head 最前面，确保 tokens 先加载
       doc.head.insertBefore(tokensLink, doc.head.firstChild)
     }
     tokensLink.href = '/themes/svgedit-tokens.css'
@@ -61,7 +57,6 @@ export async function ensureIframeTheme(
       themeLink.id = THEME_LINK_ID
       themeLink.rel = 'stylesheet'
       themeLink.type = 'text/css'
-      // 插入到 tokens link 之后
       if (tokensLink.nextSibling) {
         doc.head.insertBefore(themeLink, tokensLink.nextSibling)
       } else {
@@ -73,103 +68,204 @@ export async function ensureIframeTheme(
     const themePath = `/themes/svgedit-element-${theme}.css`
     themeLink.href = themePath
 
-    // 设置 data-theme 属性（便于 CSS 内做细分）
+    // 设置 data-theme 属性
     doc.documentElement.setAttribute('data-theme', theme)
     doc.documentElement.dataset.theme = theme
     doc.body?.setAttribute('data-theme', theme)
 
-    // 3. 执行 DOM patch（如果启用）
-    if (ENABLE_SVGEDIT_PATCH) {
-      // 延迟一下，确保 CSS 已加载
-      setTimeout(() => {
-        try {
-          patchSvgEditDom(doc)
-        } catch (patchError) {
-          // patch 失败不影响主题应用
-          console.warn('[SVG-Edit Theme] DOM patch failed (non-fatal):', patchError)
+    // 强制覆盖 SVG-Edit 原生 CSS 变量
+    if (theme === 'light') {
+      const styleOverride = doc.getElementById('se-theme-override') || doc.createElement('style')
+      styleOverride.id = 'se-theme-override'
+      styleOverride.textContent = `
+        :root {
+          --main-bg-color: #f7f8fa !important;
+          --canvas-bg-color: #ffffff !important;
+          --text-color: #303133 !important;
         }
-      }, 50)
+        .svg_editor {
+          background: #f7f8fa !important;
+          color: #303133 !important;
+        }
+        #workarea {
+          background-color: #f5f7fa !important;
+        }
+        #svgcanvas {
+          background-color: #ffffff !important;
+          background: #ffffff !important;
+        }
+        /* 主按钮文字必须是黑色 */
+        #main_button,
+        #main_icon,
+        #main_icon span {
+          color: #303133 !important;
+        }
+        /* 选中状态的图标必须是蓝色（SVG） */
+        #tools_left button.selected svg *,
+        #tools_left se-button[pressed] svg *,
+        #tools_top button.selected svg *,
+        #tools_top se-button[pressed] svg * {
+          fill: #409eff !important;
+          stroke: #409eff !important;
+        }
+        /* 浅色模式：所有工具栏区域的 img 图标默认蓝色 */
+        #tools_left img,
+        #tools_top img,
+        #tools_bottom img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+          transition: filter 0.2s ease !important;
+        }
+        /* 选中状态的图标保持蓝色 */
+        #tools_left button.selected img,
+        #tools_left se-button[pressed] img,
+        #tools_top button.selected img,
+        #tools_top se-button[pressed] img,
+        se-button[pressed] img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+        }
+        /* hover 状态的 img 图标（保持蓝色） */
+        #tools_left button:hover img,
+        #tools_left se-button:hover img,
+        #tools_top button:hover img,
+        #tools_top se-button:hover img,
+        se-button:hover img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+        }
+        /* 浅色模式：选中框是蓝色，背景透明 */
+        #tools_left button,
+        #tools_left se-button,
+        #tools_left se-flyingbutton,
+        #tools_left se-flyingbutton se-button {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        #tools_left button.selected,
+        #tools_left se-button[pressed],
+        #tools_left se-flyingbutton[pressed],
+        #tools_left se-flyingbutton se-button[pressed] {
+          background-color: transparent !important;
+          background: transparent !important;
+          border-color: #409eff !important;
+        }
+        /* 确保 se-button 和 se-flyingbutton Shadow DOM 内部 div 背景透明 */
+        se-button::part(button),
+        se-button::part(div),
+        se-flyingbutton::part(button),
+        se-flyingbutton::part(div) {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        /* 浅色模式：所有工具栏区域的 img 图标默认蓝色（包括 se-flyingbutton 内） */
+        #tools_left img,
+        #tools_top img,
+        #tools_bottom img,
+        #tools_left se-flyingbutton img,
+        #tools_left se-flyingbutton se-button img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+          transition: filter 0.2s ease !important;
+        }
+      `
+      if (!doc.getElementById('se-theme-override')) {
+        doc.head.appendChild(styleOverride)
+      }
+    } else if (theme === 'dark') {
+      // 深色模式：图标蓝色，选中框白色
+      const styleOverride = doc.getElementById('se-theme-override') || doc.createElement('style')
+      styleOverride.id = 'se-theme-override'
+      styleOverride.textContent = `
+        /* 深色模式：所有工具栏区域的 img 图标默认蓝色 */
+        #tools_left img,
+        #tools_top img,
+        #tools_bottom img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+        }
+        /* 深色模式：选中框是白色，背景透明 */
+        #tools_left button,
+        #tools_left se-button,
+        #tools_left se-flyingbutton,
+        #tools_left se-flyingbutton se-button {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        #tools_left button.selected,
+        #tools_left se-button[pressed],
+        #tools_left se-flyingbutton[pressed],
+        #tools_left se-flyingbutton se-button[pressed] {
+          background-color: transparent !important;
+          background: transparent !important;
+          border-color: #ffffff !important;
+        }
+        /* 确保 se-button 和 se-flyingbutton Shadow DOM 内部 div 背景透明 */
+        se-button::part(button),
+        se-button::part(div),
+        se-flyingbutton::part(button),
+        se-flyingbutton::part(div) {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+        /* 深色模式：所有工具栏区域的 img 图标默认蓝色（包括 se-flyingbutton 内） */
+        #tools_left img,
+        #tools_top img,
+        #tools_bottom img,
+        #tools_left se-flyingbutton img,
+        #tools_left se-flyingbutton se-button img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+        }
+      `
+      if (!doc.getElementById('se-theme-override')) {
+        doc.head.appendChild(styleOverride)
+      }
     }
 
     console.log(`[SVG-Edit Theme] Applied ${theme} theme to iframe`)
   } catch (error) {
-    // 跨域或访问失败
     console.warn(
       '[SVG-Edit Theme] Cannot inject theme CSS (cross-origin or access denied):',
       error
     )
-    console.warn(
-      '[SVG-Edit Theme] 建议：将 SVG-Edit 静态资源改为同域路径（Nginx/Vite 静态目录）'
-    )
-
-    // 降级方案：使用 postMessage
-    try {
-      iframe.contentWindow?.postMessage(
-        {
-          type: 'SVGED_THEME',
-          theme,
-        },
-        '*'
-      )
-      console.log(`[SVG-Edit Theme] Sent theme via postMessage: ${theme}`)
-    } catch (postError) {
-      console.error('[SVG-Edit Theme] Failed to send theme via postMessage:', postError)
-    }
   }
 }
 
 /**
  * 绑定主题到 iframe
- * @param options - 配置选项
  */
 export interface BindThemeOptions {
-  /** iframe ref */
   iframeRef: { value: HTMLIFrameElement | null }
-  /** 获取当前主题的函数 */
   getTheme: () => Theme
-  /** 监听主题变化的函数，返回 unwatch 函数 */
   watchTheme: (callback: (theme: Theme) => void) => () => void
 }
 
 export function bindThemeToIframe(options: BindThemeOptions): () => void {
   const { iframeRef, getTheme, watchTheme } = options
 
-  // 应用主题的函数
   const applyTheme = async () => {
     const iframe = iframeRef.value
     if (!iframe) {
       return
     }
-
     const theme = getTheme()
     await ensureIframeTheme(iframe, theme)
   }
 
-  // 监听 iframe load 事件（解决 reload 问题）
   const handleLoad = () => {
     applyTheme()
   }
 
-  // 绑定 load 事件的函数
   const bindLoadEvent = () => {
     if (iframeRef.value) {
       iframeRef.value.addEventListener('load', handleLoad)
     }
   }
 
-  // 立即应用一次（mount 时）
-  // 使用 nextTick 确保 iframe ref 已经赋值
   setTimeout(() => {
     applyTheme()
     bindLoadEvent()
   }, 0)
 
-  // 监听主题变化
   const unwatchTheme = watchTheme((theme) => {
     applyTheme()
   })
 
-  // 返回清理函数
   return () => {
     unwatchTheme()
     if (iframeRef.value) {

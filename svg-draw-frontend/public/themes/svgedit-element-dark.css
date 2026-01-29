@@ -1,9 +1,7 @@
 /**
  * SVG-Edit Element Plus Dark Theme
- * 深度改造：覆盖所有 UI 元素，使其看起来像 Element Plus 暗色风格
  */
 
-/* ========== 覆盖 Token 变量值（Dark） ========== */
 :root {
   --se-bg: #1d1e1f;
   --se-bg-page: #0d1117;
@@ -28,411 +26,90 @@
   --se-primary-dark: #66b1ff;
   --se-primary-weak: #1e3a5f;
   
-  --se-success: #67c23a;
-  --se-success-light: #1e3a5f;
-  --se-warning: #e6a23c;
-  --se-warning-light: #2d2419;
-  --se-danger: #f56c6c;
-  --se-danger-light: #2d1e1e;
-  --se-info: #909399;
-  --se-info-light: #1e1e1e;
-  
   --se-canvas-bg: #0d1117;
   --se-workarea-bg: #161b22;
   
   --se-scrollbar-thumb: rgba(144, 147, 153, 0.3);
   --se-scrollbar-thumb-hover: rgba(144, 147, 153, 0.5);
+  
+  --se-icon: #409eff; /* 深色模式：默认也是蓝色 */
+  --se-icon-hover: #66b1ff;
+  --se-icon-active: #66b1ff;
+  --se-icon-disabled: #484f58;
+  --se-icon-on-primary: #ffffff;
 }
 
-/* ========== 基础框架 ========== */
 html,
 body {
   background-color: var(--se-bg-page) !important;
   color: var(--se-text-primary) !important;
-  font-family: var(--se-font-family) !important;
-  font-size: var(--se-font-size-md) !important;
 }
 
-/* SVG-Edit 主容器 */
 .svg_editor {
   background: var(--se-bg-page) !important;
   color: var(--se-text-primary) !important;
-  font-family: var(--se-font-family) !important;
 }
 
-/* ========== 顶部工具栏 ========== */
-#tools_top,
-#tools_top > * {
-  background-color: var(--se-toolbar-bg) !important;
-  border-bottom: 1px solid var(--se-toolbar-border) !important;
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  min-height: auto !important;
-}
-
-/* 工具栏按钮组 */
-#tools_top se-list,
-#tools_top se-select,
-#tools_top .tool_button,
-#tools_top button {
-  margin-right: var(--se-spacing-xs) !important;
-}
-
-/* ========== 左侧工具栏（重点改造） ========== */
-#tools_left {
-  background-color: var(--se-sidebar-bg) !important;
-  border-right: 1px solid var(--se-sidebar-border) !important;
-  padding: var(--se-spacing-sm) !important;
-}
-
-/* 左侧工具栏按钮 */
-#tools_left button,
-#tools_left .tool_button,
-#tools_left [role="button"],
-#tools_left se-button {
-  width: var(--se-button-size-md) !important;
-  height: var(--se-button-size-md) !important;
-  min-width: var(--se-button-size-md) !important;
-  min-height: var(--se-button-size-md) !important;
-  padding: 0 !important;
-  margin: 2px !important;
-  background-color: transparent !important;
-  border: 1px solid transparent !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-regular) !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s ease !important;
-}
-
-#tools_left button:hover,
-#tools_left .tool_button:hover,
-#tools_left [role="button"]:hover {
-  background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
-}
-
-#tools_left button:active,
-#tools_left .tool_button:active,
-#tools_left [role="button"]:active,
-#tools_left button.selected,
-#tools_left .tool_button.selected,
-#tools_left [role="button"].selected {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
-}
-
-#tools_left button:disabled,
-#tools_left .tool_button:disabled,
-#tools_left [role="button"]:disabled {
-  background-color: var(--se-bg) !important;
-  color: var(--se-text-disabled) !important;
-  cursor: not-allowed !important;
-  opacity: 0.5 !important;
-}
-
-/* ========== 底部工具栏 ========== */
-#tools_bottom {
-  background-color: var(--se-toolbar-bg) !important;
-  border-top: 1px solid var(--se-toolbar-border) !important;
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-}
-
-/* ========== 主按钮/菜单按钮 ========== */
-#main_button,
-#main_icon {
-  background-color: transparent !important;
-  border: 1px solid transparent !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-primary) !important;
-  transition: all 0.2s ease !important;
-}
-
-#main_icon:hover {
-  background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
-}
-
-#main_icon.buttondown {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-  box-shadow: none !important;
-}
-
-/* 主菜单下拉 */
-#main_menu {
-  background-color: var(--se-bg-elev) !important;
-  border: 1px solid var(--se-border-lighter) !important;
-  border-radius: var(--se-radius-lg) !important;
-  box-shadow: var(--se-shadow-2) !important;
-  padding: var(--se-spacing-xs) !important;
-}
-
-#main_menu li {
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  border-radius: var(--se-radius-sm) !important;
-  color: var(--se-text-primary) !important;
-  transition: background-color 0.2s ease !important;
-}
-
-#main_menu li:hover {
-  background-color: var(--se-primary-weak) !important;
-}
-
-/* ========== 输入框 ========== */
-input[type="text"],
-input[type="number"],
-input[type="color"],
-input[type="file"],
-select,
-textarea {
-  height: var(--se-input-height-md) !important;
-  padding: 0 var(--se-spacing-sm) !important;
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-primary) !important;
-  font-size: var(--se-font-size-sm) !important;
-  transition: all 0.2s ease !important;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="color"]:focus,
-select:focus,
-textarea:focus {
-  border-color: var(--se-primary) !important;
-  outline: none !important;
-  box-shadow: 0 0 0 2px var(--se-focus-ring) !important;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--se-text-placeholder) !important;
-}
-
-input:disabled,
-select:disabled,
-textarea:disabled {
-  background-color: var(--se-bg-page) !important;
-  color: var(--se-text-disabled) !important;
-  cursor: not-allowed !important;
-}
-
-/* ========== 下拉菜单 ========== */
-.dropdown button {
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-primary) !important;
-  transition: all 0.2s ease !important;
-}
-
-.dropdown button:hover {
-  background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
-}
-
-.dropdown button.down {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-}
-
-.dropdown ul {
-  background-color: var(--se-bg-elev) !important;
-  border: 1px solid var(--se-border-lighter) !important;
-  border-radius: var(--se-radius-lg) !important;
-  box-shadow: var(--se-shadow-2) !important;
-  padding: var(--se-spacing-xs) !important;
-}
-
-.dropdown li {
-  background-color: transparent !important;
-  border: none !important;
-  border-radius: var(--se-radius-sm) !important;
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  color: var(--se-text-primary) !important;
-  transition: background-color 0.2s ease !important;
-}
-
-.dropdown li:hover {
-  background-color: var(--se-primary-weak) !important;
-}
-
-/* ========== 右侧面板 ========== */
-#sidepanels,
-#sidepanel_content {
-  background-color: var(--se-panel) !important;
-  border-left: 1px solid var(--se-sidebar-border) !important;
-}
-
-#sidepanel_handle {
-  background-color: var(--se-panel-header) !important;
-  color: var(--se-text-regular) !important;
-  border-left: 1px solid var(--se-border-lighter) !important;
-}
-
-/* 图层面板 */
-#layerpanel {
-  background-color: var(--se-panel) !important;
-  padding: var(--se-spacing-md) !important;
-}
-
-#layerlist {
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-}
-
-#layerlist tr.layer {
-  background-color: transparent !important;
-}
-
-#layerlist tr.layersel {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-}
-
-#layerlist td.layername {
-  color: var(--se-text-primary) !important;
-}
-
-#layerlist td.layername:hover {
-  color: var(--se-primary) !important;
-}
-
-/* ========== 工作区/画布 ========== */
 #workarea {
   background-color: var(--se-workarea-bg) !important;
   border: 1px solid var(--se-canvas-border) !important;
-  border-radius: var(--se-radius-lg) !important;
 }
 
 #svgcanvas {
   background-color: var(--se-canvas-bg) !important;
 }
 
-/* ========== 上下文面板 ========== */
-#cur_context_panel {
-  background-color: var(--se-panel-header) !important;
-  color: var(--se-text-regular) !important;
-  border-bottom: 1px solid var(--se-border-lighter) !important;
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
+#tools_top,
+#tools_top > * {
+  background-color: var(--se-panel) !important;
+  border-bottom: 1px solid var(--se-toolbar-border) !important;
 }
 
-#cur_context_panel a {
-  color: var(--se-primary) !important;
+#tools_left {
+  background-color: var(--se-panel) !important;
+  border-right: 1px solid var(--se-sidebar-border) !important;
 }
 
-#cur_context_panel a:hover {
-  color: var(--se-primary-dark) !important;
+#tools_left button,
+#tools_left .tool_button,
+#tools_left [role="button"],
+#tools_left se-button {
+  color: var(--se-icon) !important; /* 蓝色图标 */
 }
 
-/* ========== 滚动条（Webkit） ========== */
-::-webkit-scrollbar {
-  width: var(--se-scrollbar-width) !important;
-  height: var(--se-scrollbar-width) !important;
+#tools_left button,
+#tools_left .tool_button,
+#tools_left [role="button"],
+#tools_left se-button {
+  color: var(--se-icon) !important; /* 蓝色图标 */
 }
 
-::-webkit-scrollbar-track {
-  background: var(--se-scrollbar-track) !important;
+#tools_left button,
+#tools_left .tool_button,
+#tools_left [role="button"],
+#tools_left se-button {
+  background-color: transparent !important; /* 深色模式：默认背景透明 */
 }
 
-::-webkit-scrollbar-thumb {
-  background-color: var(--se-scrollbar-thumb) !important;
-  border-radius: 3px !important;
-  transition: background-color 0.2s ease !important;
+#tools_left button.selected,
+#tools_left .tool_button.selected,
+#tools_left [role="button"].selected,
+#tools_left se-button[pressed] {
+  background-color: transparent !important; /* 深色模式：选中时背景透明，只有白色边框 */
+  border-color: #ffffff !important; /* 深色模式：白色选择框 */
+  color: var(--se-icon-active) !important; /* 蓝色图标 */
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--se-scrollbar-thumb-hover) !important;
+/* 深色模式：所有 img 图标默认蓝色 */
+#tools_left img,
+#tools_top img,
+#tools_bottom img,
+#tools_left se-flyingbutton img,
+#tools_left se-flyingbutton se-button img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
 }
 
-/* ========== 分割线 ========== */
-hr {
-  border: none !important;
-  border-bottom: 1px solid var(--se-border-lighter) !important;
-  margin: var(--se-spacing-md) 0 !important;
-}
-
-/* ========== 链接 ========== */
-a {
-  color: var(--se-primary) !important;
-  text-decoration: none !important;
-  transition: color 0.2s ease !important;
-}
-
-a:hover {
-  color: var(--se-primary-dark) !important;
-}
-
-/* ========== 通用按钮（不在工具栏内的） ========== */
-button:not(#tools_left button):not(#tools_top button):not(#tools_bottom button):not(.dropdown button) {
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-primary) !important;
-  font-size: var(--se-font-size-sm) !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-button:hover:not(:disabled) {
-  background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
-}
-
-button:active:not(:disabled),
-button.selected:not(:disabled) {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-}
-
-button:disabled {
-  background-color: var(--se-bg-page) !important;
-  color: var(--se-text-disabled) !important;
-  cursor: not-allowed !important;
-  opacity: 0.5 !important;
-}
-
-/* ========== 自定义元素（se-*） ========== */
-se-list,
-se-select,
-se-button {
-  border-radius: var(--se-radius-md) !important;
-}
-
-/* ========== 弹窗/对话框（如果存在） ========== */
-.se-dialog-root,
-.dialog,
-.modal,
-[role="dialog"] {
-  background-color: var(--se-bg-elev) !important;
-  border: 1px solid var(--se-border-lighter) !important;
-  border-radius: var(--se-radius-lg) !important;
-  box-shadow: var(--se-shadow-3) !important;
-}
-
-/* ========== 提示/警告框 ========== */
-.alert,
-.warning,
-.error {
-  padding: var(--se-spacing-md) !important;
-  border-radius: var(--se-radius-md) !important;
-  border: 1px solid var(--se-border) !important;
-}
-
-/* ========== 选中状态 ========== */
-.selected,
-.active,
-[aria-selected="true"] {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
+#tools_bottom {
+  background-color: var(--se-panel) !important;
+  border-top: 1px solid var(--se-toolbar-border) !important;
 }

@@ -86,7 +86,7 @@
   --se-sidebar-bg: var(--se-panel);
   --se-sidebar-border: var(--se-border-lighter);
   
-  /* ========== 画布 ========== */
+  /* ========== 画布（重要：浅色主题必须是白色） ========== */
   --se-canvas-bg: #ffffff;
   --se-canvas-border: var(--se-border);
   --se-workarea-bg: #f5f7fa;
@@ -96,4 +96,11 @@
   --se-scrollbar-track: transparent;
   --se-scrollbar-thumb: rgba(144, 147, 153, 0.3);
   --se-scrollbar-thumb-hover: rgba(144, 147, 153, 0.5);
+  
+  /* ========== 图标颜色 ========== */
+  --se-icon: #606266; /* 默认图标色（regular） */
+  --se-icon-hover: #409eff; /* hover 图标色（primary） */
+  --se-icon-active: #409eff; /* active/selected 图标色（primary） */
+  --se-icon-disabled: #c0c4cc; /* disabled 图标色 */
+  --se-icon-on-primary: #ffffff; /* 主色背景上的图标色 */
 }

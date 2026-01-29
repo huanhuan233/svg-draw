@@ -1,9 +1,9 @@
 /**
  * SVG-Edit Element Plus Light Theme
- * 深度改造：覆盖所有 UI 元素，使其看起来像 Element Plus
+ * 深度改造：覆盖所有 UI 元素，使其看起来像 Element Plus 蓝白主题
  */
 
-/* ========== 覆盖 Token 变量值（Light） ========== */
+/* ========== 覆盖 Token 变量值（Light - 蓝白主题） ========== */
 :root {
   --se-bg: #ffffff;
   --se-bg-page: #f7f8fa;
@@ -28,20 +28,17 @@
   --se-primary-dark: #337ecc;
   --se-primary-weak: #ecf5ff;
   
-  --se-success: #67c23a;
-  --se-success-light: #f0f9ff;
-  --se-warning: #e6a23c;
-  --se-warning-light: #fdf6ec;
-  --se-danger: #f56c6c;
-  --se-danger-light: #fef0f0;
-  --se-info: #909399;
-  --se-info-light: #f4f4f5;
-  
   --se-canvas-bg: #ffffff;
   --se-workarea-bg: #f5f7fa;
   
   --se-scrollbar-thumb: rgba(144, 147, 153, 0.3);
   --se-scrollbar-thumb-hover: rgba(144, 147, 153, 0.5);
+  
+  --se-icon: #409eff; /* 浅色模式：默认就是蓝色 */
+  --se-icon-hover: #409eff;
+  --se-icon-active: #409eff;
+  --se-icon-disabled: #c0c4cc;
+  --se-icon-on-primary: #ffffff;
 }
 
 /* ========== 基础框架 ========== */
@@ -53,42 +50,52 @@ body {
   font-size: var(--se-font-size-md) !important;
 }
 
-/* SVG-Edit 主容器 */
+/* SVG-Edit 主容器 - 必须是白色/浅色背景 */
 .svg_editor {
   background: var(--se-bg-page) !important;
   color: var(--se-text-primary) !important;
   font-family: var(--se-font-family) !important;
 }
 
+/* ========== 画布区域（关键：必须是白色） ========== */
+#workarea {
+  background-color: var(--se-workarea-bg) !important;
+  border: 1px solid var(--se-canvas-border) !important;
+  border-radius: var(--se-radius-lg) !important;
+}
+
+#svgcanvas {
+  background-color: var(--se-canvas-bg) !important;
+  background: #ffffff !important;
+}
+
+/* 确保画布背景是白色 */
+#svgcanvas rect[id="canvasBackground"] {
+  fill: #ffffff !important;
+}
+
 /* ========== 顶部工具栏 ========== */
 #tools_top,
 #tools_top > * {
-  background-color: var(--se-toolbar-bg) !important;
+  background-color: #ffffff !important;
   border-bottom: 1px solid var(--se-toolbar-border) !important;
   padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
   min-height: auto !important;
 }
 
-/* 工具栏按钮组 */
-#tools_top se-list,
-#tools_top se-select,
-#tools_top .tool_button,
-#tools_top button {
-  margin-right: var(--se-spacing-xs) !important;
-}
-
-/* ========== 左侧工具栏（重点改造） ========== */
+/* ========== 左侧工具栏 ========== */
 #tools_left {
-  background-color: var(--se-sidebar-bg) !important;
+  background-color: #ffffff !important;
   border-right: 1px solid var(--se-sidebar-border) !important;
   padding: var(--se-spacing-sm) !important;
 }
 
-/* 左侧工具栏按钮 */
 #tools_left button,
 #tools_left .tool_button,
 #tools_left [role="button"],
-#tools_left se-button {
+#tools_left se-button,
+#tools_left se-flyingbutton,
+#tools_left se-flyingbutton se-button {
   width: var(--se-button-size-md) !important;
   height: var(--se-button-size-md) !important;
   min-width: var(--se-button-size-md) !important;
@@ -96,9 +103,10 @@ body {
   padding: 0 !important;
   margin: 2px !important;
   background-color: transparent !important;
+  background: transparent !important;
   border: 1px solid transparent !important;
   border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-regular) !important;
+  color: var(--se-icon) !important; /* #409eff 蓝色 */
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
@@ -108,10 +116,14 @@ body {
 
 #tools_left button:hover,
 #tools_left .tool_button:hover,
-#tools_left [role="button"]:hover {
-  background-color: var(--se-primary-weak) !important;
+#tools_left [role="button"]:hover,
+#tools_left se-button:hover,
+#tools_left se-flyingbutton:hover,
+#tools_left se-flyingbutton se-button:hover {
+  background-color: transparent !important; /* hover 时背景也透明 */
+  background: transparent !important;
   border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
+  color: var(--se-icon-hover) !important;
 }
 
 #tools_left button:active,
@@ -119,75 +131,142 @@ body {
 #tools_left [role="button"]:active,
 #tools_left button.selected,
 #tools_left .tool_button.selected,
-#tools_left [role="button"].selected {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
+#tools_left [role="button"].selected,
+#tools_left se-button[pressed],
+#tools_left se-flyingbutton[pressed],
+#tools_left se-flyingbutton se-button[pressed] {
+  background-color: transparent !important; /* 浅色模式：选中时背景透明，只有蓝色边框 */
+  background: transparent !important;
+  border-color: var(--se-primary) !important; /* 蓝色选择框 */
+  color: var(--se-icon-active) !important;
 }
 
-#tools_left button:disabled,
-#tools_left .tool_button:disabled,
-#tools_left [role="button"]:disabled {
-  background-color: var(--se-bg) !important;
-  color: var(--se-text-disabled) !important;
-  cursor: not-allowed !important;
-  opacity: 0.5 !important;
+/* 选中状态：img 图标通过 filter 变蓝（包括 se-button 内部） */
+#tools_left button.selected img,
+#tools_left .tool_button.selected img,
+#tools_left [role="button"].selected img,
+#tools_left se-button[pressed] img,
+#tools_left se-button[pressed]::part(img),
+se-button[pressed] img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+}
+
+/* 默认状态：img 图标蓝色（浅色模式） */
+#tools_left button img,
+#tools_left .tool_button img,
+#tools_left [role="button"] img,
+#tools_left se-button img,
+#tools_left se-flyingbutton img,
+#tools_left se-flyingbutton se-button img,
+se-button img,
+se-flyingbutton img,
+se-flyingbutton se-button img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
+  transition: filter 0.2s ease !important;
+}
+
+/* hover 状态：img 图标保持蓝色 */
+#tools_left button:hover img,
+#tools_left .tool_button:hover img,
+#tools_left [role="button"]:hover img,
+#tools_left se-button:hover img,
+se-button:hover img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
+  opacity: 0.8 !important;
+}
+
+/* 通用：所有工具栏区域的 img 图标（浅色模式：默认蓝色） */
+#tools_left img,
+#tools_top img,
+#tools_bottom img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
+  transition: filter 0.2s ease !important;
+}
+
+/* 选中按钮内的 img（保持蓝色） */
+#tools_left button.selected img,
+#tools_left se-button[pressed] img,
+#tools_top button.selected img,
+#tools_top se-button[pressed] img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
+}
+
+/* 选中状态：图标本身必须是蓝色，不仅仅是边框 */
+#tools_left button.selected svg,
+#tools_left button.selected img,
+#tools_left .tool_button.selected svg,
+#tools_left .tool_button.selected img,
+#tools_left [role="button"].selected svg,
+#tools_left [role="button"].selected img,
+#tools_left se-button[pressed] svg,
+#tools_left se-button[pressed] img {
+  color: var(--se-icon-active) !important;
+}
+
+#tools_left button.selected svg *,
+#tools_left .tool_button.selected svg *,
+#tools_left se-button[pressed] svg * {
+  fill: var(--se-icon-active) !important;
+  stroke: var(--se-icon-active) !important;
 }
 
 /* ========== 底部工具栏 ========== */
 #tools_bottom {
-  background-color: var(--se-toolbar-bg) !important;
+  background-color: #ffffff !important;
   border-top: 1px solid var(--se-toolbar-border) !important;
   padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
 }
 
-/* ========== 主按钮/菜单按钮 ========== */
+/* ========== 主按钮（SVG-Edit 标题按钮） ========== */
 #main_button,
-#main_icon {
-  background-color: transparent !important;
-  border: 1px solid transparent !important;
-  border-radius: var(--se-radius-md) !important;
+#main_icon,
+#main_icon span,
+#main_icon > div {
   color: var(--se-text-primary) !important;
-  transition: all 0.2s ease !important;
+  background-color: transparent !important;
 }
 
 #main_icon:hover {
   background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
+  color: var(--se-text-primary) !important;
 }
 
 #main_icon.buttondown {
   background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-  box-shadow: none !important;
-}
-
-/* 主菜单下拉 */
-#main_menu {
-  background-color: var(--se-bg-elev) !important;
-  border: 1px solid var(--se-border-lighter) !important;
-  border-radius: var(--se-radius-lg) !important;
-  box-shadow: var(--se-shadow-2) !important;
-  padding: var(--se-spacing-xs) !important;
-}
-
-#main_menu li {
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  border-radius: var(--se-radius-sm) !important;
   color: var(--se-text-primary) !important;
-  transition: background-color 0.2s ease !important;
 }
 
-#main_menu li:hover {
-  background-color: var(--se-primary-weak) !important;
+/* 主按钮内的图标 */
+#main_button svg,
+#main_icon svg,
+#main_button img,
+#main_icon img {
+  color: var(--se-icon) !important;
+}
+
+#main_icon:hover svg,
+#main_icon:hover img {
+  color: var(--se-icon-hover) !important;
+}
+
+#main_icon.buttondown svg,
+#main_icon.buttondown img {
+  color: var(--se-icon-active) !important;
+}
+
+/* ========== 标题面板 ========== */
+#title_panel,
+#title_panel > p,
+#title_panel span,
+#title_panel div {
+  color: var(--se-text-primary) !important;
+  background-color: transparent !important;
 }
 
 /* ========== 输入框 ========== */
 input[type="text"],
 input[type="number"],
 input[type="color"],
-input[type="file"],
 select,
 textarea {
   height: var(--se-input-height-md) !important;
@@ -197,252 +276,105 @@ textarea {
   border-radius: var(--se-radius-md) !important;
   color: var(--se-text-primary) !important;
   font-size: var(--se-font-size-sm) !important;
-  transition: all 0.2s ease !important;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
-input[type="color"]:focus,
-select:focus,
-textarea:focus {
+select:focus {
   border-color: var(--se-primary) !important;
   outline: none !important;
   box-shadow: 0 0 0 2px var(--se-focus-ring) !important;
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--se-text-placeholder) !important;
+/* ========== 图标样式（深度覆盖） ========== */
+/* 工具栏按钮默认图标颜色（浅色模式：蓝色） */
+.se-ui-root #tools_left button,
+.se-ui-root #tools_left se-button,
+.se-ui-root #tools_top button,
+.se-ui-root #tools_top se-button,
+.se-ui-root #tools_bottom button,
+.se-ui-root #tools_bottom se-button {
+  color: var(--se-icon) !important; /* #409eff 蓝色 */
 }
 
-input:disabled,
-select:disabled,
-textarea:disabled {
-  background-color: var(--se-bg-page) !important;
-  color: var(--se-text-disabled) !important;
-  cursor: not-allowed !important;
+/* hover 状态图标颜色（保持蓝色） */
+.se-ui-root #tools_left button:hover,
+.se-ui-root #tools_left se-button:hover,
+.se-ui-root #tools_top button:hover,
+.se-ui-root #tools_top se-button:hover {
+  color: var(--se-icon-hover) !important; /* #409eff 蓝色 */
 }
 
-/* ========== 下拉菜单 ========== */
-.dropdown button {
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-primary) !important;
-  transition: all 0.2s ease !important;
+/* 选中状态：图标保持蓝色 */
+.se-ui-root #tools_left button.selected,
+.se-ui-root #tools_left se-button[pressed],
+.se-ui-root #tools_top button.selected,
+.se-ui-root #tools_top se-button[pressed] {
+  color: var(--se-icon-active) !important; /* #409eff 蓝色 */
+  border-color: var(--se-primary) !important; /* 蓝色选择框 */
 }
 
-.dropdown button:hover {
-  background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
+/* 选中状态的 SVG 图标强制蓝色（内联 SVG） */
+.se-ui-root #tools_left button.selected svg,
+.se-ui-root #tools_left se-button[pressed] svg,
+.se-ui-root #tools_top button.selected svg,
+.se-ui-root #tools_top se-button[pressed] svg {
+  color: var(--se-icon-active) !important;
 }
 
-.dropdown button.down {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
+.se-ui-root #tools_left button.selected svg *,
+.se-ui-root #tools_left se-button[pressed] svg *,
+.se-ui-root #tools_top button.selected svg *,
+.se-ui-root #tools_top se-button[pressed] svg * {
+  fill: var(--se-icon-active) !important;
+  stroke: var(--se-icon-active) !important;
 }
 
-.dropdown ul {
-  background-color: var(--se-bg-elev) !important;
-  border: 1px solid var(--se-border-lighter) !important;
-  border-radius: var(--se-radius-lg) !important;
-  box-shadow: var(--se-shadow-2) !important;
-  padding: var(--se-spacing-xs) !important;
+/* 选中状态的 img 图标（通过 CSS filter 变蓝） */
+.se-ui-root #tools_left button.selected img,
+.se-ui-root #tools_left se-button[pressed] img,
+.se-ui-root #tools_top button.selected img,
+.se-ui-root #tools_top se-button[pressed] img {
+  /* 将灰色图标转换为蓝色：brightness(0) saturate(100%) invert(XX%) */
+  /* 409eff 蓝色对应的 filter 值 */
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
 }
 
-.dropdown li {
-  background-color: transparent !important;
-  border: none !important;
-  border-radius: var(--se-radius-sm) !important;
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  color: var(--se-text-primary) !important;
-  transition: background-color 0.2s ease !important;
+/* 默认状态的 img 图标（灰色） */
+.se-ui-root #tools_left button img,
+.se-ui-root #tools_left se-button img,
+.se-ui-root #tools_top button img,
+.se-ui-root #tools_top se-button img {
+  filter: brightness(0) saturate(100%) invert(38%) !important; /* #606266 灰色 */
+  transition: filter 0.2s ease !important;
 }
 
-.dropdown li:hover {
-  background-color: var(--se-primary-weak) !important;
+/* hover 状态的 img 图标（蓝色） */
+.se-ui-root #tools_left button:hover img,
+.se-ui-root #tools_left se-button:hover img,
+.se-ui-root #tools_top button:hover img,
+.se-ui-root #tools_top se-button:hover img {
+  filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
 }
 
-/* ========== 右侧面板 ========== */
-#sidepanels,
-#sidepanel_content {
-  background-color: var(--se-panel) !important;
-  border-left: 1px solid var(--se-sidebar-border) !important;
-  color: var(--se-text-primary) !important;
+/* 所有 UI 区域的 SVG 图标继承颜色 */
+.se-ui-root svg * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
-#sidepanel_handle {
-  background-color: var(--se-panel-header) !important;
-  color: var(--se-text-primary) !important;
-  border-left: 1px solid var(--se-border-lighter) !important;
+/* 主按钮区域的 SVG 图标 */
+.se-ui-root #main_button svg *,
+.se-ui-root #main_icon svg * {
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
-/* 图层面板 */
-#layerpanel {
-  background-color: var(--se-panel) !important;
-  padding: var(--se-spacing-md) !important;
-}
-
-#layerlist {
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-}
-
-#layerlist tr.layer {
-  background-color: transparent !important;
-}
-
-#layerlist tr.layersel {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-}
-
-#layerlist td.layername {
-  color: var(--se-text-primary) !important;
-}
-
-#layerlist td.layername:hover {
-  color: var(--se-primary) !important;
-}
-
-/* ========== 工作区/画布 ========== */
-#workarea {
-  background-color: var(--se-workarea-bg) !important;
-  border: 1px solid var(--se-canvas-border) !important;
-  border-radius: var(--se-radius-lg) !important;
-}
-
-#svgcanvas {
-  background-color: var(--se-canvas-bg) !important;
-}
-
-/* ========== 标题面板（文件名显示区域） ========== */
-#title_panel,
-#title_panel > p,
-#title_panel span,
-#title_panel div {
-  color: var(--se-text-primary) !important;
-  background-color: transparent !important;
-}
-
-/* ========== 上下文面板 ========== */
-#cur_context_panel {
-  background-color: var(--se-panel-header) !important;
-  color: var(--se-text-regular) !important;
-  border-bottom: 1px solid var(--se-border-lighter) !important;
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-}
-
-#cur_context_panel a {
-  color: var(--se-primary) !important;
-}
-
-#cur_context_panel a:hover {
-  color: var(--se-primary-dark) !important;
-}
-
-/* ========== 滚动条（Webkit） ========== */
-::-webkit-scrollbar {
-  width: var(--se-scrollbar-width) !important;
-  height: var(--se-scrollbar-width) !important;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--se-scrollbar-track) !important;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--se-scrollbar-thumb) !important;
-  border-radius: 3px !important;
-  transition: background-color 0.2s ease !important;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--se-scrollbar-thumb-hover) !important;
-}
-
-/* ========== 分割线 ========== */
-hr {
-  border: none !important;
-  border-bottom: 1px solid var(--se-border-lighter) !important;
-  margin: var(--se-spacing-md) 0 !important;
-}
-
-/* ========== 链接 ========== */
-a {
-  color: var(--se-primary) !important;
-  text-decoration: none !important;
-  transition: color 0.2s ease !important;
-}
-
-a:hover {
-  color: var(--se-primary-dark) !important;
-}
-
-/* ========== 通用按钮（不在工具栏内的） ========== */
-button:not(#tools_left button):not(#tools_top button):not(#tools_bottom button):not(.dropdown button) {
-  padding: var(--se-spacing-sm) var(--se-spacing-md) !important;
-  background-color: var(--se-bg) !important;
-  border: 1px solid var(--se-border) !important;
-  border-radius: var(--se-radius-md) !important;
-  color: var(--se-text-primary) !important;
-  font-size: var(--se-font-size-sm) !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-button:hover:not(:disabled) {
-  background-color: var(--se-primary-weak) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
-}
-
-button:active:not(:disabled),
-button.selected:not(:disabled) {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-}
-
-button:disabled {
-  background-color: var(--se-bg-page) !important;
-  color: var(--se-text-disabled) !important;
-  cursor: not-allowed !important;
-  opacity: 0.5 !important;
-}
-
-/* ========== 自定义元素（se-*） ========== */
-se-list,
-se-select,
-se-button {
-  border-radius: var(--se-radius-md) !important;
-}
-
-/* ========== 弹窗/对话框（如果存在） ========== */
-.se-dialog-root,
-.dialog,
-.modal,
-[role="dialog"] {
-  background-color: var(--se-bg-elev) !important;
-  border: 1px solid var(--se-border-lighter) !important;
-  border-radius: var(--se-radius-lg) !important;
-  box-shadow: var(--se-shadow-3) !important;
-}
-
-/* ========== 提示/警告框 ========== */
-.alert,
-.warning,
-.error {
-  padding: var(--se-spacing-md) !important;
-  border-radius: var(--se-radius-md) !important;
-  border: 1px solid var(--se-border) !important;
-}
-
-/* ========== 选中状态 ========== */
-.selected,
-.active,
-[aria-selected="true"] {
-  background-color: var(--se-primary-light) !important;
-  border-color: var(--se-primary) !important;
-  color: var(--se-primary) !important;
+/* 确保画布内的 SVG 不受影响 */
+#svgcontent svg *,
+#svgroot svg *,
+#workarea svg *,
+#svgcanvas svg * {
+  fill: inherit !important;
+  stroke: inherit !important;
 }

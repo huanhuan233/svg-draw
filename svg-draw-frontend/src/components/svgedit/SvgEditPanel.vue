@@ -51,6 +51,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { bindThemeToIframe, ensureIframeTheme } from '../../utils/svgeditThemeBridge'
 import { useTheme } from '../../composables/useTheme'
 import { patchIframeDom, ENABLE_SVGEDIT_PATCH } from '../../utils/svgeditSkinPatcher'
+import { patchIframeIcons, ENABLE_ICON_PATCH } from '../../utils/svgeditIconPatcher'
 
 const iframeSrc = ref('/svgedit/editor/index.html')
 const isReady = ref(false)
@@ -77,7 +78,18 @@ const handleIframeLoad = async () => {
     // 执行 DOM patch（延迟确保 SVG-Edit 已初始化）
     if (ENABLE_SVGEDIT_PATCH) {
       setTimeout(() => {
-        patchIframeDom(iframeRef.value!)
+        patchIframeDom(iframeRef.value!).then(() => {
+          // 执行图标 patch（处理 Shadow DOM）
+          if (ENABLE_ICON_PATCH) {
+            setTimeout(() => {
+              patchIframeIcons(iframeRef.value!)
+            }, 300)
+          }
+          // 再次确保主题应用（patch 后可能需要重新应用）
+          setTimeout(() => {
+            ensureIframeTheme(iframeRef.value!, getTheme())
+          }, 100)
+        })
       }, 200)
     }
   }
