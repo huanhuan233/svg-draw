@@ -3,8 +3,11 @@
  * 用于在宿主 Vue 应用中向 SVG-Edit iframe 注入主题 CSS
  */
 
+import { patchSvgEditDom, ENABLE_SVGEDIT_PATCH } from './svgeditSkinPatcher'
+
 export type Theme = 'light' | 'dark'
 
+const TOKENS_LINK_ID = 'svgedit-tokens-link'
 const THEME_LINK_ID = 'svgedit-theme-link'
 
 /**
@@ -39,15 +42,31 @@ export async function ensureIframeTheme(
       })
     }
 
-    // 查找或创建主题 link 元素
-    let themeLink = doc.getElementById(THEME_LINK_ID) as HTMLLinkElement | null
+    // 1. 查找或创建 tokens link（必须先加载）
+    let tokensLink = doc.getElementById(TOKENS_LINK_ID) as HTMLLinkElement | null
+    if (!tokensLink) {
+      tokensLink = doc.createElement('link')
+      tokensLink.id = TOKENS_LINK_ID
+      tokensLink.rel = 'stylesheet'
+      tokensLink.type = 'text/css'
+      // 插入到 head 最前面，确保 tokens 先加载
+      doc.head.insertBefore(tokensLink, doc.head.firstChild)
+    }
+    tokensLink.href = '/themes/svgedit-tokens.css'
 
+    // 2. 查找或创建主题 link（在 tokens 之后）
+    let themeLink = doc.getElementById(THEME_LINK_ID) as HTMLLinkElement | null
     if (!themeLink) {
       themeLink = doc.createElement('link')
       themeLink.id = THEME_LINK_ID
       themeLink.rel = 'stylesheet'
       themeLink.type = 'text/css'
-      doc.head.appendChild(themeLink)
+      // 插入到 tokens link 之后
+      if (tokensLink.nextSibling) {
+        doc.head.insertBefore(themeLink, tokensLink.nextSibling)
+      } else {
+        doc.head.appendChild(themeLink)
+      }
     }
 
     // 更新主题 CSS 路径
@@ -56,7 +75,21 @@ export async function ensureIframeTheme(
 
     // 设置 data-theme 属性（便于 CSS 内做细分）
     doc.documentElement.setAttribute('data-theme', theme)
+    doc.documentElement.dataset.theme = theme
     doc.body?.setAttribute('data-theme', theme)
+
+    // 3. 执行 DOM patch（如果启用）
+    if (ENABLE_SVGEDIT_PATCH) {
+      // 延迟一下，确保 CSS 已加载
+      setTimeout(() => {
+        try {
+          patchSvgEditDom(doc)
+        } catch (patchError) {
+          // patch 失败不影响主题应用
+          console.warn('[SVG-Edit Theme] DOM patch failed (non-fatal):', patchError)
+        }
+      }, 50)
+    }
 
     console.log(`[SVG-Edit Theme] Applied ${theme} theme to iframe`)
   } catch (error) {

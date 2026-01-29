@@ -1,0 +1,99 @@
+/**
+ * SVG-Edit Theme Tokens
+ * 只定义 CSS 变量，不写具体选择器
+ * 由 light/dark 主题文件覆盖这些变量值
+ */
+
+:root {
+  /* ========== 背景色 ========== */
+  --se-bg: #ffffff;
+  --se-bg-page: #f7f8fa;
+  --se-bg-elev: #ffffff; /* 浮层/弹窗背景 */
+  --se-panel: #ffffff; /* 面板背景 */
+  --se-panel-header: #f5f7fa; /* 面板头部背景 */
+  
+  /* ========== 文字色 ========== */
+  --se-text-primary: #303133;
+  --se-text-regular: #606266;
+  --se-text-secondary: #909399;
+  --se-text-placeholder: #c0c4cc;
+  --se-text-disabled: #c0c4cc;
+  
+  /* ========== 边框色 ========== */
+  --se-border: #dcdfe6;
+  --se-border-lighter: #e4e7ed;
+  --se-border-lightest: #ebeef5;
+  --se-border-dark: #c0c4cc;
+  
+  /* ========== 主色系 ========== */
+  --se-primary: #409eff;
+  --se-primary-light: #ecf5ff;
+  --se-primary-lighter: #f0f9ff;
+  --se-primary-dark: #337ecc;
+  --se-primary-weak: #ecf5ff; /* hover 浅染 */
+  
+  /* ========== 功能色 ========== */
+  --se-success: #67c23a;
+  --se-success-light: #f0f9ff;
+  --se-warning: #e6a23c;
+  --se-warning-light: #fdf6ec;
+  --se-danger: #f56c6c;
+  --se-danger-light: #fef0f0;
+  --se-info: #909399;
+  --se-info-light: #f4f4f5;
+  
+  /* ========== 圆角 ========== */
+  --se-radius-sm: 2px;
+  --se-radius-md: 4px;
+  --se-radius-lg: 8px;
+  --se-radius-xl: 12px;
+  
+  /* ========== 阴影 ========== */
+  --se-shadow-1: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  --se-shadow-2: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --se-shadow-3: 0 4px 16px rgba(0, 0, 0, 0.12);
+  
+  /* ========== Focus Ring ========== */
+  --se-focus-ring: rgba(64, 158, 255, 0.2);
+  
+  /* ========== 间距 ========== */
+  --se-spacing-xs: 4px;
+  --se-spacing-sm: 8px;
+  --se-spacing-md: 12px;
+  --se-spacing-lg: 16px;
+  --se-spacing-xl: 20px;
+  
+  /* ========== 字体 ========== */
+  --se-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --se-font-size-xs: 10px;
+  --se-font-size-sm: 12px;
+  --se-font-size-md: 14px;
+  --se-font-size-lg: 16px;
+  
+  /* ========== 输入框高度 ========== */
+  --se-input-height-sm: 28px;
+  --se-input-height-md: 32px;
+  --se-input-height-lg: 40px;
+  
+  /* ========== 按钮尺寸 ========== */
+  --se-button-size-sm: 24px;
+  --se-button-size-md: 32px;
+  --se-button-size-lg: 40px;
+  
+  /* ========== 工具栏/面板 ========== */
+  --se-toolbar-bg: var(--se-panel);
+  --se-toolbar-border: var(--se-border-lighter);
+  --se-sidebar-bg: var(--se-panel);
+  --se-sidebar-border: var(--se-border-lighter);
+  
+  /* ========== 画布 ========== */
+  --se-canvas-bg: #ffffff;
+  --se-canvas-border: var(--se-border);
+  --se-workarea-bg: #f5f7fa;
+  
+  /* ========== 滚动条 ========== */
+  --se-scrollbar-width: 6px;
+  --se-scrollbar-track: transparent;
+  --se-scrollbar-thumb: rgba(144, 147, 153, 0.3);
+  --se-scrollbar-thumb-hover: rgba(144, 147, 153, 0.5);
+}

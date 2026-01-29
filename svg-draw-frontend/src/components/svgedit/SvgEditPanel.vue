@@ -50,6 +50,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { bindThemeToIframe, ensureIframeTheme } from '../../utils/svgeditThemeBridge'
 import { useTheme } from '../../composables/useTheme'
+import { patchIframeDom, ENABLE_SVGEDIT_PATCH } from '../../utils/svgeditSkinPatcher'
 
 const iframeSrc = ref('/svgedit/editor/index.html')
 const isReady = ref(false)
@@ -65,13 +66,20 @@ const exitFullscreen = () => {
   isFullscreen.value = false
 }
 
-const handleIframeLoad = () => {
+const handleIframeLoad = async () => {
   console.log('SVG-Edit iframe loaded')
   // 等待 bridge.js 发送 READY 消息
   
   // 确保主题已应用（iframe reload 后）
   if (iframeRef.value) {
-    ensureIframeTheme(iframeRef.value, getTheme())
+    await ensureIframeTheme(iframeRef.value, getTheme())
+    
+    // 执行 DOM patch（延迟确保 SVG-Edit 已初始化）
+    if (ENABLE_SVGEDIT_PATCH) {
+      setTimeout(() => {
+        patchIframeDom(iframeRef.value!)
+      }, 200)
+    }
   }
 }
 
