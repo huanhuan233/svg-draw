@@ -107,9 +107,13 @@ export async function ensureIframeTheme(
         #main_icon span {
           color: #303133 !important;
         }
-        /* 选中状态的图标必须是蓝色（SVG）- 只影响工具栏，不影响画布 */
+        /* 选中状态的图标必须是白色（SVG）- 侧栏按钮背景是蓝色 */
         #tools_left button.selected svg *,
-        #tools_left se-button[pressed] svg *,
+        #tools_left se-button[pressed] svg * {
+          fill: #ffffff !important;
+          stroke: #ffffff !important;
+        }
+        /* 顶部和底部工具栏选中状态的图标保持蓝色 */
         #tools_top button.selected svg *,
         #tools_top se-button[pressed] svg * {
           fill: #409eff !important;
@@ -122,61 +126,155 @@ export async function ensureIframeTheme(
         #svgroot * {
           /* 不设置任何样式，让SVG使用自己的fill/stroke属性 */
         }
-        /* 浅色模式：所有工具栏区域的 img 图标默认蓝色 */
-        #tools_left img,
-        #tools_top img,
-        #tools_bottom img {
-          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+        /* 浅色模式：侧栏按钮图标为白色（因为背景是蓝色），顶部和底部工具栏图标为蓝色 */
+        #tools_left img {
+          filter: brightness(0) invert(1) !important; /* 白色 */
           transition: filter 0.2s ease !important;
         }
-        /* 选中状态的图标保持蓝色 */
+        #tools_top img,
+        #tools_bottom img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
+          transition: filter 0.2s ease !important;
+        }
+        /* 选中状态的图标：侧栏保持白色，顶部和底部保持蓝色 */
         #tools_left button.selected img,
-        #tools_left se-button[pressed] img,
+        #tools_left se-button[pressed] img {
+          filter: brightness(0) invert(1) !important; /* 白色 */
+        }
         #tools_top button.selected img,
         #tools_top se-button[pressed] img,
         se-button[pressed] img {
-          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
         }
-        /* hover 状态的 img 图标（保持蓝色） */
+        /* hover 状态的 img 图标：侧栏保持白色，顶部和底部保持蓝色 */
         #tools_left button:hover img,
-        #tools_left se-button:hover img,
+        #tools_left se-button:hover img {
+          filter: brightness(0) invert(1) !important; /* 白色 */
+        }
         #tools_top button:hover img,
         #tools_top se-button:hover img,
         se-button:hover img {
-          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
         }
-        /* 浅色模式：选中框是蓝色，背景透明 */
+        /* 浅色模式：所有侧栏按钮都是蓝底白字 */
         #tools_left button,
         #tools_left se-button,
         #tools_left se-flyingbutton,
         #tools_left se-flyingbutton se-button {
-          background-color: transparent !important;
-          background: transparent !important;
+          background-color: #409eff !important; /* 蓝色背景 */
+          background: #409eff !important;
+          color: #ffffff !important; /* 白色图标 */
+          border-color: #409eff !important;
+        }
+        #tools_left button:hover,
+        #tools_left se-button:hover,
+        #tools_left se-flyingbutton:hover,
+        #tools_left se-flyingbutton se-button:hover {
+          background-color: #337ecc !important; /* hover 时更深的蓝色 */
+          background: #337ecc !important;
+          border-color: #337ecc !important;
         }
         #tools_left button.selected,
         #tools_left se-button[pressed],
         #tools_left se-flyingbutton[pressed],
         #tools_left se-flyingbutton se-button[pressed] {
-          background-color: transparent !important;
-          background: transparent !important;
-          border-color: #409eff !important;
+          background-color: #337ecc !important; /* 选中时更深的蓝色 */
+          background: #337ecc !important;
+          border-color: #337ecc !important;
+          color: #ffffff !important;
         }
-        /* 确保 se-button 和 se-flyingbutton Shadow DOM 内部 div 背景透明 */
-        se-button::part(button),
-        se-button::part(div),
-        se-flyingbutton::part(button),
-        se-flyingbutton::part(div) {
-          background-color: transparent !important;
-          background: transparent !important;
+        /* 确保 se-button 和 se-flyingbutton Shadow DOM 内部 div 背景是蓝色 */
+        #tools_left se-button::part(button),
+        #tools_left se-button::part(div),
+        #tools_left se-flyingbutton::part(button),
+        #tools_left se-flyingbutton::part(div) {
+          background-color: #409eff !important; /* 蓝色背景 */
+          background: #409eff !important;
         }
-        /* 浅色模式：所有工具栏区域的 img 图标默认蓝色（包括 se-flyingbutton 内） */
+        /* 浅色模式：侧栏按钮图标为白色（因为背景是蓝色），顶部和底部工具栏图标为蓝色 */
         #tools_left img,
-        #tools_top img,
-        #tools_bottom img,
         #tools_left se-flyingbutton img,
         #tools_left se-flyingbutton se-button img {
-          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
+          filter: brightness(0) invert(1) !important; /* 白色 */
           transition: filter 0.2s ease !important;
+        }
+        #tools_top img,
+        #tools_bottom img {
+          filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important; /* 蓝色 */
+          transition: filter 0.2s ease !important;
+        }
+        /* 顶部和底部工具栏按钮（se-zoom, se-colorpicker, se-select, se-list, se-spin-input, se-input 等）蓝底白字 */
+        #tools_top se-zoom,
+        #tools_top se-colorpicker,
+        #tools_top se-select,
+        #tools_top se-list,
+        #tools_top se-spin-input,
+        #tools_top se-input,
+        #tools_bottom se-zoom,
+        #tools_bottom se-colorpicker,
+        #tools_bottom se-select,
+        #tools_bottom se-list,
+        #tools_bottom se-spin-input,
+        #tools_bottom se-input {
+          background-color: #409eff !important; /* 蓝色背景 */
+          color: #ffffff !important; /* 白色文字 */
+          border-radius: 4px !important;
+        }
+        #tools_top se-zoom:hover,
+        #tools_top se-colorpicker:hover,
+        #tools_top se-select:hover,
+        #tools_top se-list:hover,
+        #tools_top se-spin-input:hover,
+        #tools_top se-input:hover,
+        #tools_bottom se-zoom:hover,
+        #tools_bottom se-colorpicker:hover,
+        #tools_bottom se-select:hover,
+        #tools_bottom se-list:hover,
+        #tools_bottom se-spin-input:hover,
+        #tools_bottom se-input:hover {
+          background-color: #66b1ff !important; /* hover时浅蓝色 */
+        }
+        /* SVG图标保持原色，不强制渲染 */
+        #tools_top se-zoom svg,
+        #tools_top se-zoom img,
+        #tools_top se-colorpicker svg,
+        #tools_top se-colorpicker img,
+        #tools_top se-select svg,
+        #tools_top se-select img,
+        #tools_top se-list svg,
+        #tools_top se-list img,
+        #tools_top se-spin-input svg,
+        #tools_top se-spin-input img,
+        #tools_top se-input svg,
+        #tools_top se-input img,
+        #tools_bottom se-zoom svg,
+        #tools_bottom se-zoom img,
+        #tools_bottom se-colorpicker svg,
+        #tools_bottom se-colorpicker img,
+        #tools_bottom se-select svg,
+        #tools_bottom se-select img,
+        #tools_bottom se-list svg,
+        #tools_bottom se-list img,
+        #tools_bottom se-spin-input svg,
+        #tools_bottom se-spin-input img,
+        #tools_bottom se-input svg,
+        #tools_bottom se-input img {
+          filter: none !important; /* 保持原色，不应用任何filter */
+        }
+        #tools_top se-zoom svg *,
+        #tools_top se-colorpicker svg *,
+        #tools_top se-select svg *,
+        #tools_top se-list svg *,
+        #tools_top se-spin-input svg *,
+        #tools_top se-input svg *,
+        #tools_bottom se-zoom svg *,
+        #tools_bottom se-colorpicker svg *,
+        #tools_bottom se-select svg *,
+        #tools_bottom se-list svg *,
+        #tools_bottom se-spin-input svg *,
+        #tools_bottom se-input svg * {
+          fill: inherit !important; /* 继承原色 */
+          stroke: inherit !important; /* 继承原色 */
         }
         /* 标尺样式：蓝色背景和蓝色边框 */
         #ruler_corner,

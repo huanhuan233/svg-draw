@@ -19,37 +19,57 @@ function generateShadowThemeStyles(theme: Theme): string {
   if (theme === 'light') {
     return `
       /* ========== 图标颜色 ========== */
-      img {
-        filter: ${blueFilter} !important;
+      /* 侧栏按钮图标为白色（因为背景是蓝色） */
+      .menu-button img,
+      se-button img {
+        filter: brightness(0) invert(1) !important; /* 白色 */
         transition: filter 0.2s ease !important;
       }
       
-      /* SVG 图标继承颜色 */
-      svg, svg * {
-        fill: currentColor !important;
-        stroke: currentColor !important;
+      /* SVG 图标继承颜色（白色） */
+      .menu-button svg,
+      .menu-button svg *,
+      se-button svg,
+      se-button svg * {
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
       }
       
       /* ========== 按钮状态 ========== */
       .menu-button,
       se-button {
-        color: var(--se-icon, #409eff) !important;
-        background-color: transparent !important;
-        background: transparent !important;
+        color: #ffffff !important; /* 白色图标 */
+        background-color: #409eff !important; /* 蓝色背景 */
+        background: #409eff !important;
+        border-color: #409eff !important;
       }
       
       .menu-button:hover,
       se-button:hover {
-        color: var(--se-icon-hover, #409eff) !important;
-        background-color: transparent !important;
+        color: #ffffff !important; /* 白色图标 */
+        background-color: #337ecc !important; /* hover 时更深的蓝色 */
+        background: #337ecc !important;
+        border-color: #337ecc !important;
+      }
+      
+      .menu-button:hover img,
+      se-button:hover img {
+        filter: brightness(0) invert(1) !important; /* hover 时保持白色 */
       }
       
       .menu-button.pressed,
       .overall.pressed .menu-button,
       se-button[pressed] {
-        color: var(--se-icon-active, #409eff) !important;
-        background-color: transparent !important;
-        border-color: var(--se-primary, #409eff) !important;
+        color: #ffffff !important; /* 白色图标 */
+        background-color: #337ecc !important; /* 选中时更深的蓝色 */
+        background: #337ecc !important;
+        border-color: #337ecc !important;
+      }
+      
+      .menu-button.pressed img,
+      .overall.pressed .menu-button img,
+      se-button[pressed] img {
+        filter: brightness(0) invert(1) !important; /* 选中时保持白色 */
       }
       
       .disabled,
@@ -131,15 +151,122 @@ function generateShadowThemeStyles(theme: Theme): string {
       /* 注意：选中状态需要在 se-list-item 的 Shadow DOM 内部处理 */
       /* 因为 ::slotted() 无法访问 slot 内容内部的 Shadow DOM */
       
-      /* ========== se-input 和 se-spin-input 的 label 文字颜色 ========== */
+      /* ========== se-input 和 se-spin-input 的样式 ========== */
+      /* se-spin-input 和 se-input 蓝底白字 */
+      div {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+        border-radius: 4px !important;
+      }
       span#label {
-        color: #409eff !important; /* 蓝色文字，在白色背景上可见 */
+        color: #ffffff !important; /* 白色文字，在蓝色背景上可见 */
+      }
+      elix-number-spin-box {
+        background-color: #409eff !important; /* 蓝色背景 */
+      }
+      elix-number-spin-box::part(input) {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      elix-number-spin-box::part(spin-button) {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      elix-input {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      elix-input::part(input) {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
       }
       
-      /* 确保 se-input 和 se-spin-input 的背景保持白色 */
-      div {
+      /* ========== se-zoom 组件（fit_to_canvas 等）蓝底白字 ========== */
+      #options-container {
+        background-color: #409eff !important; /* 蓝色背景 */
+        border: solid 1px #ffffff !important;
+      }
+      ::slotted(*) {
+        color: #ffffff !important; /* 白色文字 */
         background-color: transparent !important;
-        background: transparent !important;
+      }
+      ::slotted(*:hover) {
+        background-color: #66b1ff !important; /* hover时浅蓝色 */
+        color: #ffffff !important;
+      }
+      input {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      #spinner > div {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      #down {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      /* SVG图标保持原色，不强制渲染 */
+      #icon,
+      #icon svg,
+      #icon svg *,
+      img {
+        filter: none !important; /* 保持原色，不应用任何filter */
+      }
+      #icon svg * {
+        fill: inherit !important; /* 继承原色 */
+        stroke: inherit !important; /* 继承原色 */
+      }
+      /* se-spin-input 和 se-input 中的图标保持原色 */
+      img[alt="icon"] {
+        filter: none !important; /* 保持原色，不应用任何filter */
+      }
+      
+      /* ========== se-select 组件蓝底白字 ========== */
+      select {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      
+      /* ========== se-list 组件蓝底白字 ========== */
+      #select-container {
+        background-color: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      #select-container:hover {
+        background-color: #66b1ff !important; /* hover时浅蓝色 */
+      }
+      #selected-value {
+        color: #ffffff !important; /* 白色文字 */
+      }
+      /* SVG图标保持原色，不强制渲染 */
+      #selected-value img {
+        filter: none !important; /* 保持原色，不应用任何filter */
+      }
+      
+      /* ========== se-colorpicker 组件按钮蓝底白字 ========== */
+      #picker {
+        background: #409eff !important; /* 蓝色背景 */
+        color: #ffffff !important; /* 白色文字 */
+      }
+      #block {
+        background-color: #66b1ff !important; /* 浅蓝色，用于显示颜色预览 */
+      }
+      #label {
+        color: #ffffff !important; /* 白色文字 */
+      }
+      /* SVG图标保持原色，不强制渲染 */
+      #logo,
+      #logo svg,
+      #logo svg * {
+        filter: none !important; /* 保持原色，不应用任何filter */
+      }
+      #logo svg * {
+        fill: inherit !important; /* 继承原色 */
+        stroke: inherit !important; /* 继承原色 */
+      }
+      .jPicker .Icon {
+        background-color: #409eff !important; /* 蓝色背景 */
       }
     `
   } else {
@@ -435,7 +562,7 @@ function patchComponentShadowDom(
     }
     
     // 递归处理 Shadow DOM 内的其他 Web Components
-    const nestedComponents = shadowRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton, se-zoom, se-select, se-list, se-list-item, se-input, se-spin-input') as NodeListOf<HTMLElement>
+    const nestedComponents = shadowRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton, se-zoom, se-select, se-list, se-list-item, se-input, se-spin-input, se-colorpicker') as NodeListOf<HTMLElement>
     nestedComponents.forEach((nested) => {
       const result = patchComponentShadowDom(nested, theme, doc)
       shadowRootsPatched += result.shadowRootsPatched
@@ -461,7 +588,7 @@ export function patchSvgEditShadowThemes(doc: Document, theme: Theme): void {
   try {
     // 查找所有 Web Components
     const components = Array.from(
-      doc.querySelectorAll('se-explorerbutton, se-flyingbutton, se-zoom, se-button, se-select, se-list, se-list-item, se-input, se-spin-input')
+      doc.querySelectorAll('se-explorerbutton, se-flyingbutton, se-zoom, se-button, se-select, se-list, se-list-item, se-input, se-spin-input, se-colorpicker')
     ) as HTMLElement[]
     
     if (components.length === 0) {
