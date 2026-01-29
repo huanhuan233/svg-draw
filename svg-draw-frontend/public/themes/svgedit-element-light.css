@@ -402,3 +402,87 @@ select:focus {
   border-right: 1px solid #409eff !important;
   border-bottom: 1px solid #409eff !important;
 }
+
+/* ========== 顶栏上下文面板（id class x y label） ========== */
+#cur_context_panel {
+  background: #ffffff !important; /* 白色背景 */
+  color: #409eff !important; /* 蓝色文字 */
+}
+
+#cur_context_panel a {
+  color: #409eff !important; /* 蓝色链接 */
+}
+
+#cur_context_panel a:hover {
+  color: #66b1ff !important; /* hover时浅蓝色 */
+  text-decoration: underline !important;
+}
+
+/* 选中面板背景保持白色 */
+.selected_panel,
+.xy_panel {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* se-input 和 se-spin-input 的 label 文字颜色（通过 Shadow DOM 注入） */
+/* 已在 svgeditShadowThemePatcher.ts 中处理 */
+
+/* ========== 滚动条样式（反色：白色轨道，蓝色滑块） ========== */
+/* 全局滚动条 */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ffffff !important; /* 白色轨道 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #409eff !important; /* 蓝色滑块 */
+  border-radius: 6px;
+  border: 2px solid #ffffff; /* 白色边框 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #66b1ff !important; /* hover时浅蓝色 */
+}
+
+/* Firefox 滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #409eff #ffffff; /* 滑块颜色 轨道颜色 */
+}
+
+/* workarea 滚动条 */
+#workarea::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+#workarea::-webkit-scrollbar-track {
+  background: #ffffff !important;
+}
+
+#workarea::-webkit-scrollbar-thumb {
+  background: #409eff !important;
+  border-radius: 6px;
+  border: 2px solid #ffffff;
+}
+
+#workarea::-webkit-scrollbar-thumb:hover {
+  background: #66b1ff !important;
+}
+
+/* 工具栏滚动条 */
+#tools_left::-webkit-scrollbar-thumb,
+#tools_bottom::-webkit-scrollbar-thumb {
+  background-color: #409eff !important; /* 蓝色滑块 */
+  border-radius: 3px;
+}
+
+#tools_left::-webkit-scrollbar-track,
+#tools_bottom::-webkit-scrollbar-track {
+  background: #ffffff !important; /* 白色轨道 */
+}

@@ -197,6 +197,64 @@ export async function ensureIframeTheme(
           border-right: 1px solid #409eff !important;
           border-bottom: 1px solid #409eff !important;
         }
+        /* 顶栏上下文面板（id class x y label） */
+        #cur_context_panel {
+          background: #ffffff !important; /* 白色背景 */
+          color: #409eff !important; /* 蓝色文字 */
+        }
+        #cur_context_panel a {
+          color: #409eff !important; /* 蓝色链接 */
+        }
+        #cur_context_panel a:hover {
+          color: #66b1ff !important; /* hover时浅蓝色 */
+          text-decoration: underline !important;
+        }
+        /* 选中面板背景保持白色 */
+        .selected_panel,
+        .xy_panel {
+          background: transparent !important;
+          background-color: transparent !important;
+        }
+        /* 滚动条样式（反色：白色轨道，蓝色滑块） */
+        ::-webkit-scrollbar {
+          width: 12px !important;
+          height: 12px !important;
+        }
+        ::-webkit-scrollbar-track {
+          background: #ffffff !important; /* 白色轨道 */
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #409eff !important; /* 蓝色滑块 */
+          border-radius: 6px !important;
+          border: 2px solid #ffffff !important; /* 白色边框 */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #66b1ff !important; /* hover时浅蓝色 */
+        }
+        * {
+          scrollbar-width: thin !important;
+          scrollbar-color: #409eff #ffffff !important; /* 滑块颜色 轨道颜色 */
+        }
+        #workarea::-webkit-scrollbar-track {
+          background: #ffffff !important;
+        }
+        #workarea::-webkit-scrollbar-thumb {
+          background: #409eff !important;
+          border-radius: 6px !important;
+          border: 2px solid #ffffff !important;
+        }
+        #workarea::-webkit-scrollbar-thumb:hover {
+          background: #66b1ff !important;
+        }
+        #tools_left::-webkit-scrollbar-thumb,
+        #tools_bottom::-webkit-scrollbar-thumb {
+          background-color: #409eff !important;
+          border-radius: 3px !important;
+        }
+        #tools_left::-webkit-scrollbar-track,
+        #tools_bottom::-webkit-scrollbar-track {
+          background: #ffffff !important;
+        }
       `
       if (!doc.getElementById('se-theme-override')) {
         doc.head.appendChild(styleOverride)

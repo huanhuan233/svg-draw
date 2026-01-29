@@ -130,6 +130,17 @@ function generateShadowThemeStyles(theme: Theme): string {
       
       /* 注意：选中状态需要在 se-list-item 的 Shadow DOM 内部处理 */
       /* 因为 ::slotted() 无法访问 slot 内容内部的 Shadow DOM */
+      
+      /* ========== se-input 和 se-spin-input 的 label 文字颜色 ========== */
+      span#label {
+        color: #409eff !important; /* 蓝色文字，在白色背景上可见 */
+      }
+      
+      /* 确保 se-input 和 se-spin-input 的背景保持白色 */
+      div {
+        background-color: transparent !important;
+        background: transparent !important;
+      }
     `
   } else {
     // 深色模式
@@ -424,7 +435,7 @@ function patchComponentShadowDom(
     }
     
     // 递归处理 Shadow DOM 内的其他 Web Components
-    const nestedComponents = shadowRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton, se-zoom, se-select, se-list, se-list-item') as NodeListOf<HTMLElement>
+    const nestedComponents = shadowRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton, se-zoom, se-select, se-list, se-list-item, se-input, se-spin-input') as NodeListOf<HTMLElement>
     nestedComponents.forEach((nested) => {
       const result = patchComponentShadowDom(nested, theme, doc)
       shadowRootsPatched += result.shadowRootsPatched
@@ -450,7 +461,7 @@ export function patchSvgEditShadowThemes(doc: Document, theme: Theme): void {
   try {
     // 查找所有 Web Components
     const components = Array.from(
-      doc.querySelectorAll('se-explorerbutton, se-flyingbutton, se-zoom, se-button, se-select, se-list, se-list-item')
+      doc.querySelectorAll('se-explorerbutton, se-flyingbutton, se-zoom, se-button, se-select, se-list, se-list-item, se-input, se-spin-input')
     ) as HTMLElement[]
     
     if (components.length === 0) {
