@@ -94,19 +94,30 @@ export async function ensureIframeTheme(
           background-color: #ffffff !important;
           background: #ffffff !important;
         }
+        /* 确保画布背景矩形是白色 */
+        #svgcanvas rect[id="canvasBackground"] {
+          fill: #ffffff !important;
+        }
         /* 主按钮文字必须是黑色 */
         #main_button,
         #main_icon,
         #main_icon span {
           color: #303133 !important;
         }
-        /* 选中状态的图标必须是蓝色（SVG） */
+        /* 选中状态的图标必须是蓝色（SVG）- 只影响工具栏，不影响画布 */
         #tools_left button.selected svg *,
         #tools_left se-button[pressed] svg *,
         #tools_top button.selected svg *,
         #tools_top se-button[pressed] svg * {
           fill: #409eff !important;
           stroke: #409eff !important;
+        }
+        /* 重要：确保画布内的SVG内容完全不受影响 */
+        #svgcontent,
+        #svgroot,
+        #svgcontent *,
+        #svgroot * {
+          /* 不设置任何样式，让SVG使用自己的fill/stroke属性 */
         }
         /* 浅色模式：所有工具栏区域的 img 图标默认蓝色 */
         #tools_left img,

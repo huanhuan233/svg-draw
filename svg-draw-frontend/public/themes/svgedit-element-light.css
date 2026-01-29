@@ -59,17 +59,17 @@ body {
 
 /* ========== 画布区域（关键：必须是白色） ========== */
 #workarea {
-  background-color: var(--se-workarea-bg) !important;
+  background-color: #f5f7fa !important;
   border: 1px solid var(--se-canvas-border) !important;
   border-radius: var(--se-radius-lg) !important;
 }
 
 #svgcanvas {
-  background-color: var(--se-canvas-bg) !important;
+  background-color: #ffffff !important;
   background: #ffffff !important;
 }
 
-/* 确保画布背景是白色 */
+/* 确保画布背景矩形是白色（只影响背景，不影响用户绘制的SVG） */
 #svgcanvas rect[id="canvasBackground"] {
   fill: #ffffff !important;
 }
@@ -357,8 +357,10 @@ select:focus {
   filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
 }
 
-/* 所有 UI 区域的 SVG 图标继承颜色 */
-.se-ui-root svg * {
+/* 所有 UI 区域的 SVG 图标继承颜色（只影响工具栏，不影响画布内容） */
+.se-ui-root #tools_left svg *,
+.se-ui-root #tools_top svg *,
+.se-ui-root #tools_bottom svg * {
   fill: currentColor !important;
   stroke: currentColor !important;
 }
@@ -370,11 +372,5 @@ select:focus {
   stroke: currentColor !important;
 }
 
-/* 确保画布内的 SVG 不受影响 */
-#svgcontent svg *,
-#svgroot svg *,
-#workarea svg *,
-#svgcanvas svg * {
-  fill: inherit !important;
-  stroke: inherit !important;
-}
+/* 重要：完全不影响画布内的SVG内容，让用户绘制的SVG保持原样 */
+/* 不设置任何规则，让SVG使用自己的fill/stroke属性 */
