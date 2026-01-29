@@ -3,6 +3,8 @@
  * 用于在宿主 Vue 应用中向 SVG-Edit iframe 注入主题 CSS
  */
 
+import { patchSvgEditShadowThemes } from './svgeditShadowThemePatcher'
+
 export type Theme = 'light' | 'dark'
 
 const TOKENS_LINK_ID = 'svgedit-tokens-link'
@@ -229,6 +231,9 @@ export async function ensureIframeTheme(
     }
 
     console.log(`[SVG-Edit Theme] Applied ${theme} theme to iframe`)
+    
+    // 应用 Shadow DOM 主题修复
+    patchSvgEditShadowThemes(doc, theme)
   } catch (error) {
     console.warn(
       '[SVG-Edit Theme] Cannot inject theme CSS (cross-origin or access denied):',
@@ -256,6 +261,7 @@ export function bindThemeToIframe(options: BindThemeOptions): () => void {
     }
     const theme = getTheme()
     await ensureIframeTheme(iframe, theme)
+    // ensureIframeTheme 内部已调用 patchSvgEditShadowThemes
   }
 
   const handleLoad = () => {

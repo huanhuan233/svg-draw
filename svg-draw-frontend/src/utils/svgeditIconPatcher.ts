@@ -35,8 +35,8 @@ function removeShadowDivBackground(shadowRoot: ShadowRoot): void {
  */
 function watchButtonState(button: HTMLElement, doc: Document): void {
   const tagName = button.tagName.toLowerCase()
-  // 检查是否是 se-button 或 se-flyingbutton
-  if (tagName === 'se-button' || tagName === 'se-flyingbutton') {
+  // 检查是否是 se-button、se-flyingbutton 或 se-explorerbutton
+  if (tagName === 'se-button' || tagName === 'se-flyingbutton' || tagName === 'se-explorerbutton') {
     const shadowRoot = (button as any).shadowRoot
     if (shadowRoot) {
       // 蓝色 filter（浅色和深色模式都用蓝色）
@@ -48,8 +48,8 @@ function watchButtonState(button: HTMLElement, doc: Document): void {
       // 移除内部 div 的背景色
       removeShadowDivBackground(shadowRoot)
       
-      // 如果是 se-flyingbutton，还需要处理内部的 se-button
-      if (tagName === 'se-flyingbutton') {
+      // 如果是 se-flyingbutton 或 se-explorerbutton，还需要处理内部的 se-button
+      if (tagName === 'se-flyingbutton' || tagName === 'se-explorerbutton') {
         // 查找内部的 se-button 元素（在 Shadow DOM 内）
         const internalButtons = shadowRoot.querySelectorAll('se-button')
         internalButtons.forEach((internalBtn: HTMLElement) => {
@@ -59,6 +59,15 @@ function watchButtonState(button: HTMLElement, doc: Document): void {
             removeShadowDivBackground(internalShadowRoot)
           }
         })
+        
+        // 如果是 se-explorerbutton，还需要处理菜单项背景
+        if (tagName === 'se-explorerbutton') {
+          const menuItems = shadowRoot.querySelectorAll('.menu-item, [data-menu]')
+          menuItems.forEach((item: HTMLElement) => {
+            item.style.backgroundColor = 'transparent'
+            item.style.background = 'transparent'
+          })
+        }
       }
       
       // 监听 pressed 属性变化
@@ -73,8 +82,8 @@ function watchButtonState(button: HTMLElement, doc: Document): void {
           applyFilterToShadowImg(shadowRoot, blueFilter)
         }
         
-        // 如果是 se-flyingbutton，更新内部的 se-button
-        if (tagName === 'se-flyingbutton') {
+        // 如果是 se-flyingbutton 或 se-explorerbutton，更新内部的 se-button
+        if (tagName === 'se-flyingbutton' || tagName === 'se-explorerbutton') {
           const internalButtons = shadowRoot.querySelectorAll('se-button')
           internalButtons.forEach((internalBtn: HTMLElement) => {
             const internalShadowRoot = (internalBtn as any).shadowRoot
@@ -87,6 +96,15 @@ function watchButtonState(button: HTMLElement, doc: Document): void {
               removeShadowDivBackground(internalShadowRoot)
             }
           })
+          
+          // 如果是 se-explorerbutton，更新菜单项背景
+          if (tagName === 'se-explorerbutton') {
+            const menuItems = shadowRoot.querySelectorAll('.menu-item, [data-menu]')
+            menuItems.forEach((item: HTMLElement) => {
+              item.style.backgroundColor = 'transparent'
+              item.style.background = 'transparent'
+            })
+          }
         }
       })
       
@@ -98,8 +116,8 @@ function watchButtonState(button: HTMLElement, doc: Document): void {
       // 监听 Shadow DOM 内部变化，确保背景始终透明
       const shadowObserver = new MutationObserver(() => {
         removeShadowDivBackground(shadowRoot)
-        // 如果是 se-flyingbutton，也处理内部的 se-button
-        if (tagName === 'se-flyingbutton') {
+        // 如果是 se-flyingbutton 或 se-explorerbutton，也处理内部的 se-button
+        if (tagName === 'se-flyingbutton' || tagName === 'se-explorerbutton') {
           const internalButtons = shadowRoot.querySelectorAll('se-button')
           internalButtons.forEach((internalBtn: HTMLElement) => {
             const internalShadowRoot = (internalBtn as any).shadowRoot
@@ -108,6 +126,22 @@ function watchButtonState(button: HTMLElement, doc: Document): void {
               applyFilterToShadowImg(internalShadowRoot, blueFilter)
             }
           })
+          
+          // 如果是 se-explorerbutton，更新菜单项和内容区域背景
+          if (tagName === 'se-explorerbutton') {
+            const menuItems = shadowRoot.querySelectorAll('.menu-item, [data-menu]')
+            menuItems.forEach((item: HTMLElement) => {
+              item.style.backgroundColor = 'transparent'
+              item.style.background = 'transparent'
+            })
+            const contentDivs = shadowRoot.querySelectorAll('div')
+            contentDivs.forEach((div: HTMLElement) => {
+              if (!div.classList.contains('menu-item') && !div.hasAttribute('data-menu')) {
+                div.style.backgroundColor = 'transparent'
+                div.style.background = 'transparent'
+              }
+            })
+          }
         }
       })
       shadowObserver.observe(shadowRoot, {
@@ -155,8 +189,8 @@ export function patchSvgEditIcons(doc: Document): void {
       return
     }
     
-    // 查找所有 se-button 和 se-flyingbutton
-    const seButtons = Array.from(uiRoot.querySelectorAll('se-button, se-flyingbutton')) as HTMLElement[]
+    // 查找所有 se-button、se-flyingbutton 和 se-explorerbutton
+    const seButtons = Array.from(uiRoot.querySelectorAll('se-button, se-flyingbutton, se-explorerbutton')) as HTMLElement[]
     
     seButtons.forEach((button) => {
       watchButtonState(button, doc)
@@ -169,11 +203,11 @@ export function patchSvgEditIcons(doc: Document): void {
           if (node.nodeType === 1) {
             const element = node as HTMLElement
             const tagName = element.tagName?.toLowerCase()
-            if (tagName === 'se-button' || tagName === 'se-flyingbutton') {
+            if (tagName === 'se-button' || tagName === 'se-flyingbutton' || tagName === 'se-explorerbutton') {
               watchButtonState(element, doc)
             }
             // 检查子元素
-            const childButtons = element.querySelectorAll?.('se-button, se-flyingbutton')
+            const childButtons = element.querySelectorAll?.('se-button, se-flyingbutton, se-explorerbutton')
             childButtons?.forEach((btn) => watchButtonState(btn as HTMLElement, doc))
           }
         })

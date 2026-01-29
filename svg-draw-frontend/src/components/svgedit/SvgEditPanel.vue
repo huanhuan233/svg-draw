@@ -52,6 +52,7 @@ import { bindThemeToIframe, ensureIframeTheme } from '../../utils/svgeditThemeBr
 import { useTheme } from '../../composables/useTheme'
 import { patchIframeDom, ENABLE_SVGEDIT_PATCH } from '../../utils/svgeditSkinPatcher'
 import { patchIframeIcons, ENABLE_ICON_PATCH } from '../../utils/svgeditIconPatcher'
+import { patchIframeShadowThemes, ENABLE_SHADOW_THEME_PATCH } from '../../utils/svgeditShadowThemePatcher'
 
 const iframeSrc = ref('/svgedit/editor/index.html')
 const isReady = ref(false)
@@ -73,7 +74,8 @@ const handleIframeLoad = async () => {
   
   // 确保主题已应用（iframe reload 后）
   if (iframeRef.value) {
-    await ensureIframeTheme(iframeRef.value, getTheme())
+    const theme = getTheme()
+    await ensureIframeTheme(iframeRef.value, theme)
     
     // 执行 DOM patch（延迟确保 SVG-Edit 已初始化）
     if (ENABLE_SVGEDIT_PATCH) {
@@ -85,9 +87,19 @@ const handleIframeLoad = async () => {
               patchIframeIcons(iframeRef.value!)
             }, 300)
           }
+          // 执行 Shadow DOM 主题修复（处理 se-explorerbutton 等）
+          if (ENABLE_SHADOW_THEME_PATCH) {
+            setTimeout(() => {
+              patchIframeShadowThemes(iframeRef.value!, theme)
+            }, 800)
+          }
           // 再次确保主题应用（patch 后可能需要重新应用）
           setTimeout(() => {
-            ensureIframeTheme(iframeRef.value!, getTheme())
+            ensureIframeTheme(iframeRef.value!, theme)
+            // 重新应用 Shadow DOM 主题
+            if (ENABLE_SHADOW_THEME_PATCH) {
+              patchIframeShadowThemes(iframeRef.value!, theme)
+            }
           }, 100)
         })
       }, 200)
