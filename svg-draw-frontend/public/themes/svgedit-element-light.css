@@ -39,6 +39,9 @@
   --se-icon-active: #409eff;
   --se-icon-disabled: #c0c4cc;
   --se-icon-on-primary: #ffffff;
+  
+  /* 标尺颜色 */
+  --ruler-color: #409eff; /* 蓝色背景 */
 }
 
 /* ========== 基础框架 ========== */
@@ -376,3 +379,26 @@ select:focus {
 
 /* 重要：完全不影响画布内的SVG内容，让用户绘制的SVG保持原样 */
 /* 不设置任何规则，让SVG使用自己的fill/stroke属性 */
+
+/* ========== 标尺样式 ========== */
+#ruler_corner,
+#ruler_x,
+#ruler_y {
+  background: #409eff !important;
+}
+
+/* 标尺边缘线改为蓝色 */
+#ruler_x {
+  border-bottom: 1px solid #409eff !important;
+  border-left: 1px solid #409eff !important;
+}
+
+#ruler_y {
+  border-right: 1px solid #409eff !important;
+  border-top: 1px solid #409eff !important;
+}
+
+#ruler_corner {
+  border-right: 1px solid #409eff !important;
+  border-bottom: 1px solid #409eff !important;
+}

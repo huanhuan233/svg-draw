@@ -84,6 +84,7 @@ export async function ensureIframeTheme(
           --main-bg-color: #f7f8fa !important;
           --canvas-bg-color: #ffffff !important;
           --text-color: #303133 !important;
+          --ruler-color: #409eff !important; /* 标尺蓝色背景 */
         }
         .svg_editor {
           background: #f7f8fa !important;
@@ -177,9 +178,94 @@ export async function ensureIframeTheme(
           filter: brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(2476%) hue-rotate(200deg) brightness(102%) contrast(101%) !important;
           transition: filter 0.2s ease !important;
         }
+        /* 标尺样式：蓝色背景和蓝色边框 */
+        #ruler_corner,
+        #ruler_x,
+        #ruler_y {
+          background: #409eff !important;
+        }
+        /* 标尺边缘线改为蓝色 */
+        #ruler_x {
+          border-bottom: 1px solid #409eff !important;
+          border-left: 1px solid #409eff !important;
+        }
+        #ruler_y {
+          border-right: 1px solid #409eff !important;
+          border-top: 1px solid #409eff !important;
+        }
+        #ruler_corner {
+          border-right: 1px solid #409eff !important;
+          border-bottom: 1px solid #409eff !important;
+        }
       `
       if (!doc.getElementById('se-theme-override')) {
         doc.head.appendChild(styleOverride)
+      }
+
+      // 注入标尺Canvas绘制hook（浅色模式：白色刻度）
+      if (theme === 'light' && !doc.getElementById('se-ruler-inject')) {
+        const script = doc.createElement('script')
+        script.id = 'se-ruler-inject'
+        script.textContent = `
+          (function() {
+            // 检查canvas是否是标尺canvas
+            function isRulerCanvas(canvas) {
+              if (!canvas) return false
+              const parent = canvas.closest ? canvas.closest('#ruler_x, #ruler_y, #ruler_corner') : null
+              if (parent) return true
+              // 也检查父元素
+              let el = canvas.parentElement
+              while (el) {
+                if (el.id === 'ruler_x' || el.id === 'ruler_y' || el.id === 'ruler_corner') {
+                  return true
+                }
+                el = el.parentElement
+              }
+              return false
+            }
+            
+            // Hook Canvas getContext 方法
+            const originalGetContext = HTMLCanvasElement.prototype.getContext
+            HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+              const context = originalGetContext.call(this, type, ...args)
+              
+              if (type === '2d' && context && isRulerCanvas(this)) {
+                // 保存原始方法
+                const originalFillText = context.fillText
+                const originalStroke = context.stroke
+                const originalFillRect = context.fillRect
+                
+                // Hook fillText - 确保文字是白色
+                context.fillText = function(...args) {
+                  const oldFillStyle = this.fillStyle
+                  this.fillStyle = '#fff'
+                  originalFillText.apply(this, args)
+                  this.fillStyle = oldFillStyle
+                }
+                
+                // Hook stroke - 确保线条是白色
+                context.stroke = function() {
+                  const oldStrokeStyle = this.strokeStyle
+                  this.strokeStyle = '#fff'
+                  originalStroke.apply(this, arguments)
+                  this.strokeStyle = oldStrokeStyle
+                }
+                
+                // Hook fillRect - 跳过背景填充（由CSS控制）
+                context.fillRect = function(...args) {
+                  // 不绘制背景，由CSS控制
+                }
+                
+                // 设置默认颜色
+                context.fillStyle = '#fff'
+                context.strokeStyle = '#fff'
+              }
+              
+              return context
+            }
+          })()
+        `
+        doc.head.appendChild(script)
       }
     } else if (theme === 'dark') {
       // 深色模式：图标蓝色，选中框白色
