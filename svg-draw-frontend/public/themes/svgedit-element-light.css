@@ -88,6 +88,8 @@ body {
   background-color: #ffffff !important;
   border-right: 1px solid var(--se-sidebar-border) !important;
   padding: var(--se-spacing-sm) !important;
+  margin-left: -10px !important;
+  margin-right: auto !important;
 }
 
 #tools_left button,
